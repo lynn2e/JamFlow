@@ -1,483 +1,467 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2566">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JamFlow 🎸</title>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ★ 여기에 나중에 Firebase 설정 붙여넣기 ★
+    const firebaseConfig = {
+      apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
+      authDomain: "jamflow-dd033.firebaseapp.com",
+      databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
+      projectId: "jamflow-dd033",
+      storageBucket: "jamflow-dd033.firebasestorage.app",
+      messagingSenderId: "913570760402",
+      appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // 전역으로 넘기기
+    window._db    = db;
+    window._ref   = ref;
+    window._set   = set;
+    window._onValue = onValue;
+    window._firebaseReady = true;
+    document.dispatchEvent(new Event('firebaseReady'));
+  </script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#fff; color:#111;
+      font-family:'Segoe UI', sans-serif;
+      min-height:100vh; display:flex;
+      flex-direction:column; align-items:center;
+    }
+    header {
+      width:100%; background:#111;
+      padding:16px 24px; display:flex; align-items:center; gap:10px;
+    }
+    header h1 { color:#fff; font-size:1.4rem; font-weight:800; }
+    header h1 span { color:#e8003a; }
+    .room-name { color:#aaa; font-size:0.85rem; margin-left:4px; }
+
+    /* 로딩 */
+    .loading {
+      margin-top:80px;
+      display:flex; flex-direction:column;
+      align-items:center; gap:16px; color:#888;
+    }
+    .spinner {
+      width:36px; height:36px;
+      border:3px solid #eee;
+      border-top-color:#e8003a;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* 이름 입력 */
+    .name-screen {
+      width:100%; max-width:480px;
+      padding:48px 24px;
+      display:none; flex-direction:column;
+      align-items:center; gap:16px; text-align:center;
+    }
+    .name-screen h2 { font-size:1.4rem; font-weight:800; line-height:1.4; }
+    .name-screen h2 span { color:#e8003a; }
+    .name-screen p { font-size:0.9rem; color:#666; }
+    .name-card {
+      width:100%; border:2px solid #111;
+      border-radius:20px; padding:24px;
+      box-shadow:6px 6px 0px #111; margin-top:8px;
+    }
+    .name-card label { display:block; font-size:0.85rem; font-weight:600; margin-bottom:8px; }
+    .name-card input {
+      width:100%; padding:12px 14px;
+      border:2px solid #ddd; border-radius:10px;
+      font-size:1rem; background:#fafafa;
+      margin-bottom:16px; transition:border-color 0.2s;
+    }
+    .name-card input:focus { outline:none; border-color:#e8003a; background:#fff; }
+
+    .btn-main {
+      width:100%; padding:16px;
+      background:#e8003a; color:#fff;
+      border:none; border-radius:12px;
+      font-size:1rem; font-weight:700;
+      cursor:pointer; box-shadow:4px 4px 0px #111;
+      transition:transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-main:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #111; }
+
+    /* 그리드 화면 */
+    .grid-screen {
+      display:none; width:100%; max-width:640px;
+      padding:24px 16px 48px; flex-direction:column; gap:20px;
+    }
+    .grid-header { display:flex; justify-content:space-between; align-items:center; padding:0 8px; }
+    .grid-header h2 { font-size:1.1rem; font-weight:800; }
+    .user-badge {
+      background:#111; color:#fff;
+      padding:6px 12px; border-radius:20px;
+      font-size:0.8rem; font-weight:700;
+    }
+
+    /* 저장 상태 표시 */
+    .save-status {
+      text-align:center; font-size:0.78rem;
+      color:#aaa; min-height:18px;
+      transition:color 0.3s;
+    }
+    .save-status.saving { color:#e8003a; }
+    .save-status.saved  { color:#22c55e; }
+
+    .legend { display:flex; gap:12px; align-items:center; padding:0 8px; font-size:0.8rem; color:#666; flex-wrap:wrap; }
+    .legend-item { display:flex; align-items:center; gap:5px; }
+    .legend-dot { width:13px; height:13px; border-radius:3px; border:1px solid #ddd; }
+
+    .grid-wrap {
+      overflow-x:auto;
+      border:2px solid #111; border-radius:16px;
+      box-shadow:4px 4px 0 #111;
+    }
+    .grid-table { border-collapse:collapse; min-width:100%; }
+    .grid-table thead th {
+      background:#111; color:#fff;
+      font-size:0.75rem; font-weight:700;
+      padding:10px 4px; text-align:center;
+      white-space:nowrap; min-width:44px;
+    }
+    .grid-table thead th:first-child {
+      background:#111; min-width:0; width:0; padding:0;
+      position:sticky; left:0; z-index:2;
+      border-right:2px solid #333;
+    }
+    .grid-table thead th.sat { color:#7eb8ff; }
+    .grid-table thead th.sun { color:#ff7eb8; }
+
+    .grid-table tbody td.time-label {
+      background:#fafafa; font-size:0.65rem;
+      color:#888; font-weight:600;
+      padding:0 6px; text-align:right;
+      white-space:nowrap; position:sticky;
+      left:0; z-index:1;
+      border-right:2px solid #ccc; vertical-align:middle;
+    }
+    .grid-table tbody td.cell {
+      width:44px; height:16px;
+      border:1px solid #eee; cursor:pointer;
+      transition:background 0.05s; user-select:none;
+    }
+    .grid-table tbody td.cell:hover { opacity:0.8; }
+    .grid-table tbody tr.on-the-hour td.cell { border-top:1px solid #ccc; }
+
+    .status-card { border:2px solid #eee; border-radius:14px; padding:16px 20px; }
+    .status-card h3 { font-size:0.9rem; font-weight:700; margin-bottom:12px; }
+    .member-list { display:flex; flex-wrap:wrap; gap:8px; }
+    .member-chip {
+      background:#f5f5f5; border-radius:20px;
+      padding:5px 12px; font-size:0.82rem; font-weight:600;
+    }
+    .member-chip.me { background:#fff0f3; color:#e8003a; border:1.5px solid #e8003a; }
+
+    .btn-confirm {
+      width:100%; padding:16px;
+      background:#111; color:#fff;
+      border:none; border-radius:12px;
+      font-size:1rem; font-weight:700;
+      cursor:pointer; box-shadow:4px 4px 0px #e8003a;
+      transition:transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-confirm:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #e8003a; }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="ko"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;JamFlow 🎸&lt;/title&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- Firebase SDK --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script type="module"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ★ 여기에 나중에 Firebase 설정 붙여넣기 ★</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const firebaseConfig = {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>authDomain: "jamflow-dd033.firebaseapp.com",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>projectId: "jamflow-dd033",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>storageBucket: "jamflow-dd033.firebasestorage.app",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>messagingSenderId: "913570760402",</p>
-<p class="p1"><span class="Apple-converted-space">      </span>appId: "1:913570760402:web:18450473aa2b0a25b18f0b"</p>
-<p class="p1"><span class="Apple-converted-space">    </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const app = initializeApp(firebaseConfig);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const db<span class="Apple-converted-space">  </span>= getDatabase(app);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// 전역으로 넘기기</p>
-<p class="p1"><span class="Apple-converted-space">    </span>window._db<span class="Apple-converted-space">    </span>= db;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>window._ref <span class="Apple-converted-space">  </span>= ref;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>window._set <span class="Apple-converted-space">  </span>= set;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>window._onValue = onValue;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>window._firebaseReady = true;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.dispatchEvent(new Event('firebaseReady'));</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>* { margin:0; padding:0; box-sizing:border-box; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#fff; color:#111;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-family:'Segoe UI', sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>min-height:100vh; display:flex;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>flex-direction:column; align-items:center;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; background:#111;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:16px 24px; display:flex; align-items:center; gap:10px;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header h1 { color:#fff; font-size:1.4rem; font-weight:800; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>header h1 span { color:#e8003a; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.room-name { color:#aaa; font-size:0.85rem; margin-left:4px; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>/* 로딩 */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.loading {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin-top:80px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display:flex; flex-direction:column;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>align-items:center; gap:16px; color:#888;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.spinner {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:36px; height:36px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:3px solid #eee;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-top-color:#e8003a;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius:50%;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>animation:spin 0.8s linear infinite;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>@keyframes spin { to { transform:rotate(360deg); } }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>/* 이름 입력 */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-screen {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; max-width:480px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:48px 24px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display:none; flex-direction:column;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>align-items:center; gap:16px; text-align:center;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-screen h2 { font-size:1.4rem; font-weight:800; line-height:1.4; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-screen h2 span { color:#e8003a; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-screen p { font-size:0.9rem; color:#666; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-card {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; border:2px solid #111;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius:20px; padding:24px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>box-shadow:6px 6px 0px #111; margin-top:8px;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-card label { display:block; font-size:0.85rem; font-weight:600; margin-bottom:8px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-card input {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; padding:12px 14px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:2px solid #ddd; border-radius:10px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size:1rem; background:#fafafa;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom:16px; transition:border-color 0.2s;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.name-card input:focus { outline:none; border-color:#e8003a; background:#fff; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.btn-main {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; padding:16px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#e8003a; color:#fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:none; border-radius:12px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size:1rem; font-weight:700;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cursor:pointer; box-shadow:4px 4px 0px #111;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>transition:transform 0.15s, box-shadow 0.15s;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.btn-main:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #111; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>/* 그리드 화면 */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-screen {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display:none; width:100%; max-width:640px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:24px 16px 48px; flex-direction:column; gap:20px;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-header { display:flex; justify-content:space-between; align-items:center; padding:0 8px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-header h2 { font-size:1.1rem; font-weight:800; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.user-badge {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:6px 12px; border-radius:20px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.8rem; font-weight:700;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>/* 저장 상태 표시 */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.save-status {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>text-align:center; font-size:0.78rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color:#aaa; min-height:18px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>transition:color 0.3s;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.save-status.saving { color:#e8003a; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.save-status.saved<span class="Apple-converted-space">  </span>{ color:#22c55e; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.legend { display:flex; gap:12px; align-items:center; padding:0 8px; font-size:0.8rem; color:#666; flex-wrap:wrap; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.legend-item { display:flex; align-items:center; gap:5px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.legend-dot { width:13px; height:13px; border-radius:3px; border:1px solid #ddd; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-wrap {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>overflow-x:auto;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:2px solid #111; border-radius:16px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>box-shadow:4px 4px 0 #111;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table { border-collapse:collapse; min-width:100%; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table thead th {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.75rem; font-weight:700;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:10px 4px; text-align:center;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>white-space:nowrap; min-width:44px;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table thead th:first-child {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#111; min-width:0; width:0; padding:0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>position:sticky; left:0; z-index:2;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-right:2px solid #333;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table thead th.sat { color:#7eb8ff; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table thead th.sun { color:#ff7eb8; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table tbody td.time-label {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#fafafa; font-size:0.65rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color:#888; font-weight:600;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:0 6px; text-align:right;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>white-space:nowrap; position:sticky;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>left:0; z-index:1;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-right:2px solid #ccc; vertical-align:middle;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table tbody td.cell {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:44px; height:16px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:1px solid #eee; cursor:pointer;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>transition:background 0.05s; user-select:none;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table tbody td.cell:hover { opacity:0.8; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.grid-table tbody tr.on-the-hour td.cell { border-top:1px solid #ccc; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.status-card { border:2px solid #eee; border-radius:14px; padding:16px 20px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.status-card h3 { font-size:0.9rem; font-weight:700; margin-bottom:12px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.member-list { display:flex; flex-wrap:wrap; gap:8px; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.member-chip {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#f5f5f5; border-radius:20px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding:5px 12px; font-size:0.82rem; font-weight:600;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.member-chip.me { background:#fff0f3; color:#e8003a; border:1.5px solid #e8003a; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.btn-confirm {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width:100%; padding:16px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border:none; border-radius:12px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size:1rem; font-weight:700;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cursor:pointer; box-shadow:4px 4px 0px #e8003a;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>transition:transform 0.15s, box-shadow 0.15s;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>.btn-confirm:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #e8003a; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Jam&lt;span&gt;Flow&lt;/span&gt; 🎸&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;span class="room-name" id="headerRoomName"&gt;&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/header&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 로딩 --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="loading" id="loadingScreen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="spinner"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;span&gt;불러오는 중...&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 이름 입력 --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="name-screen" id="nameScreen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="font-size:3rem"&gt;🎵&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h2 id="roomTitle"&gt;합주 시간을&lt;br/&gt;&lt;span&gt;같이 맞춰봐요&lt;/span&gt;&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;로그인 없이 이름만 입력하면 참여할 수 있어요&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="name-card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;label for="userName"&gt;내 이름 (닉네임)&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;input type="text" id="userName" placeholder="예: 김기타, 베이스최" maxlength="10"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn-main" onclick="enterRoom()"&gt;🎸 참여하기&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 그리드 --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="grid-screen" id="gridScreen"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="grid-header"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;h2&gt;가능한 시간을 드래그해서 선택해요&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="user-badge" id="userBadge"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="save-status" id="saveStatus"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="legend"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="grid-wrap"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;table class="grid-table" id="gridTable"&gt;&lt;/table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="status-card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;h3&gt;👥 참여 현황 &lt;span id="memberCount" style="color:#e8003a;"&gt;&lt;/span&gt;&lt;/h3&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="member-list" id="memberList"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn-confirm" onclick="alert('방장이 최종 날짜를 확정할 수 있어요! (다음 단계에서 완성)')"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>🎯 최종 합주 날짜 확정하기</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const DAYS = ['일','월','화','수','목','금','토'];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── URL 파라미터 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const params <span class="Apple-converted-space">      </span>= new URLSearchParams(window.location.search);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const roomId <span class="Apple-converted-space">      </span>= params.get('id')<span class="Apple-converted-space">        </span>|| 'demo_room';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const roomName <span class="Apple-converted-space">    </span>= params.get('name')<span class="Apple-converted-space">      </span>|| '합주방';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const startDate<span class="Apple-converted-space">    </span>= params.get('start') <span class="Apple-converted-space">    </span>|| '2026-02-16';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const endDate<span class="Apple-converted-space">      </span>= params.get('end') <span class="Apple-converted-space">      </span>|| '2026-02-22';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const startHour<span class="Apple-converted-space">    </span>= parseInt(params.get('startTime') || '9');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const endHour<span class="Apple-converted-space">      </span>= parseInt(params.get('endTime') <span class="Apple-converted-space">  </span>|| '22');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const unitMin<span class="Apple-converted-space">      </span>= parseInt(params.get('unit')<span class="Apple-converted-space">      </span>|| '30');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const totalMembers = parseInt(params.get('members') <span class="Apple-converted-space">  </span>|| '4');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('headerRoomName').textContent = roomName;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('roomTitle').innerHTML = `&lt;span&gt;${roomName}&lt;/span&gt;&lt;br/&gt;합주 시간을 같이 맞춰봐요`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 날짜/슬롯 배열 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function getDates(s, e) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const arr = [], cur = new Date(s + 'T00:00:00');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const end = new Date(e + 'T00:00:00');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>while (cur &lt;= end) { arr.push(new Date(cur)); cur.setDate(cur.getDate()+1); }</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return arr;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function getSlots(sh, eh, unit) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const slots = [];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>for (let h = sh; h &lt; eh; h++)</p>
-<p class="p1"><span class="Apple-converted-space">        </span>for (let m = 0; m &lt; 60; m += unit)</p>
-<p class="p1"><span class="Apple-converted-space">          </span>slots.push({ h, m });</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return slots;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const dates = getDates(startDate, endDate);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const slots = getSlots(startHour, endHour, unitMin);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 상태 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// selections[name] = { "di_si": true, ... }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let selections = {};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let myName = '';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let isDragging = false, dragMode = null;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let saveTimer = null;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function cellKey(di, si) { return `${di}_${si}`; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function getCount(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const k = cellKey(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return Object.values(selections).filter(s =&gt; s &amp;&amp; s[k]).length;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function isMine(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return !!(selections[myName] &amp;&amp; selections[myName][cellKey(di, si)]);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 색상 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function cellColor(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const cnt = getCount(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (cnt === 0) return '#fff';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (cnt &gt;= totalMembers) return '#e8003a';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const r = cnt / totalMembers;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (r &gt;= 0.66) return '#ff4d6d';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (r &gt;= 0.33) return '#ff8099';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>return '#ffe0e6';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 범례 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function buildLegend() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const m = totalMembers;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const items = [</p>
-<p class="p1"><span class="Apple-converted-space">        </span>{ color:'#fff',<span class="Apple-converted-space">    </span>label:'불가' },</p>
-<p class="p1"><span class="Apple-converted-space">        </span>{ color:'#ffe0e6', label:'1명' },</p>
-<p class="p1"><span class="Apple-converted-space">        </span>{ color:'#ff8099', label: m &lt;= 4 ? '2명' : `2~${Math.floor(m*0.66)}명` },</p>
-<p class="p1"><span class="Apple-converted-space">        </span>{ color:'#ff4d6d', label: m &lt;= 4 ? '3명' : `${Math.floor(m*0.66)+1}~${m-1}명` },</p>
-<p class="p1"><span class="Apple-converted-space">        </span>{ color:'#e8003a', label:`${m}명 모두!` },</p>
-<p class="p1"><span class="Apple-converted-space">      </span>];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.querySelector('.legend').innerHTML = items.map(i =&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>`&lt;div class="legend-item"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="legend-dot" style="background:${i.color};"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;span&gt;${i.label}&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;`</p>
-<p class="p1"><span class="Apple-converted-space">      </span>).join('');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 그리드 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function buildGrid() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const tbl = document.getElementById('gridTable');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>tbl.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const thead = tbl.createTHead(), hrow = thead.insertRow();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const th0 = document.createElement('th'); hrow.appendChild(th0);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>dates.forEach((d, di) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const th = document.createElement('th');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const day = d.getDay();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>th.innerHTML = `${d.getMonth()+1}/${d.getDate()}&lt;br/&gt;${DAYS[day]}`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (day === 6) th.classList.add('sat');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (day === 0) th.classList.add('sun');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>hrow.appendChild(th);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>const tbody = tbl.createTBody();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>slots.forEach((slot, si) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const tr = tbody.insertRow();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (slot.m === 0) tr.classList.add('on-the-hour');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const td0 = tr.insertCell();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>td0.className = 'time-label';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (slot.m === 0) {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const h = slot.h;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td0.textContent = h &lt; 12 ? `오전 ${h}시` : h === 12 ? `오후 12시` : `오후 ${h-12}시`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>dates.forEach((d, di) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const td = tr.insertCell();</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.className = 'cell';</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.dataset.di = di; td.dataset.si = si;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.style.background = cellColor(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.addEventListener('mousedown', e =&gt; { e.preventDefault(); startDrag(di, si); });</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.addEventListener('mouseover', () =&gt; { if (isDragging) doDrag(di, si); });</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.addEventListener('touchstart', e =&gt; { e.preventDefault(); startDrag(di, si); }, { passive:false });</p>
-<p class="p1"><span class="Apple-converted-space">          </span>td.addEventListener('touchmove', e =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const t = e.touches[0];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const el = document.elementFromPoint(t.clientX, t.clientY);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (el &amp;&amp; el.dataset.di !== undefined) doDrag(+el.dataset.di, +el.dataset.si);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}, { passive:false });</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.addEventListener('mouseup',<span class="Apple-converted-space">  </span>() =&gt; { if(isDragging){ isDragging=false; scheduleSave(); } });</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.addEventListener('touchend', () =&gt; { if(isDragging){ isDragging=false; scheduleSave(); } });</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function startDrag(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>isDragging = true;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>dragMode = isMine(di, si) ? 'remove' : 'add';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>toggle(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function doDrag(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (dragMode==='add'<span class="Apple-converted-space">    </span>&amp;&amp; !isMine(di,si)) toggle(di,si);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (dragMode==='remove' &amp;&amp;<span class="Apple-converted-space">  </span>isMine(di,si)) toggle(di,si);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function toggle(di, si) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!selections[myName]) selections[myName] = {};</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const k = cellKey(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (dragMode === 'add') selections[myName][k] = true;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>else delete selections[myName][k];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const td = document.querySelector(`td[data-di="${di}"][data-si="${si}"]`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (td) td.style.background = cellColor(di, si);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── Firebase 저장 (디바운스: 드래그 끝나고 0.5초 후 저장) ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function scheduleSave() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>clearTimeout(saveTimer);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>setStatus('saving', '저장 중...');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>saveTimer = setTimeout(saveToFirebase, 500);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function setStatus(type, msg) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const el = document.getElementById('saveStatus');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.textContent = msg;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.className = 'save-status ' + type;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function saveToFirebase() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!window._db) { updateStatus(); return; } // Firebase 미연결 시 스킵</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const dbRef = window._ref(window._db, `rooms/${roomId}/selections/${myName}`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>window._set(dbRef, selections[myName] || {})</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.then(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>setStatus('saved', '✅ 저장됐어요!');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>setTimeout(() =&gt; setStatus('', ''), 2000);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>})</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.catch(() =&gt; setStatus('', ''));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>updateStatus();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── Firebase 실시간 수신 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function listenFirebase() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!window._db) return;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const dbRef = window._ref(window._db, `rooms/${roomId}/selections`);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>window._onValue(dbRef, snap =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const data = snap.val() || {};</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// 내 데이터는 덮어쓰지 않음</p>
-<p class="p1"><span class="Apple-converted-space">        </span>Object.keys(data).forEach(name =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>if (name !== myName) selections[name] = data[name];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p1"><span class="Apple-converted-space">        </span>refreshAllCells();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>updateStatus();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function refreshAllCells() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.querySelectorAll('td.cell').forEach(td =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>td.style.background = cellColor(+td.dataset.di, +td.dataset.si);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 참여 현황 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function updateStatus() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const names = new Set(Object.keys(selections).filter(n =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const s = selections[n];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>return s &amp;&amp; Object.keys(s).length &gt; 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('memberCount').textContent = `${names.size}명 참여중`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const list = document.getElementById('memberList');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>list.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>names.forEach(n =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const chip = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>chip.className = 'member-chip' + (n === myName ? ' me' : '');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>chip.textContent = n === myName ? `${n} (나)` : n;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>list.appendChild(chip);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── 참여하기 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function enterRoom() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const name = document.getElementById('userName').value.trim();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (!name) { alert('이름을 입력해주세요!'); return; }</p>
-<p class="p1"><span class="Apple-converted-space">      </span>myName = name;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('nameScreen').style.display<span class="Apple-converted-space">  </span>= 'none';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('gridScreen').style.display<span class="Apple-converted-space">  </span>= 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('userBadge').textContent = `🎸 ${myName}`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>buildLegend();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>listenFirebase();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>updateStatus();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('userName').addEventListener('keydown', e =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if (e.key === 'Enter') enterRoom();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// ── Firebase 준비되면 로딩 → 이름 입력 화면 전환 ──</p>
-<p class="p1"><span class="Apple-converted-space">    </span>function showNameScreen() {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('loadingScreen').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('nameScreen').style.display<span class="Apple-converted-space">    </span>= 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (window._firebaseReady) {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>showNameScreen();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>document.addEventListener('firebaseReady', showNameScreen);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// Firebase 설정 안 됐을 때도 3초 후 그냥 진행</p>
-<p class="p1"><span class="Apple-converted-space">      </span>setTimeout(showNameScreen, 3000);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+  <header>
+    <h1>Jam<span>Flow</span> 🎸</h1>
+    <span class="room-name" id="headerRoomName"></span>
+  </header>
+
+  <!-- 로딩 -->
+  <div class="loading" id="loadingScreen">
+    <div class="spinner"></div>
+    <span>불러오는 중...</span>
+  </div>
+
+  <!-- 이름 입력 -->
+  <div class="name-screen" id="nameScreen">
+    <div style="font-size:3rem">🎵</div>
+    <h2 id="roomTitle">합주 시간을<br/><span>같이 맞춰봐요</span></h2>
+    <p>로그인 없이 이름만 입력하면 참여할 수 있어요</p>
+    <div class="name-card">
+      <label for="userName">내 이름 (닉네임)</label>
+      <input type="text" id="userName" placeholder="예: 김기타, 베이스최" maxlength="10"/>
+      <button class="btn-main" onclick="enterRoom()">🎸 참여하기</button>
+    </div>
+  </div>
+
+  <!-- 그리드 -->
+  <div class="grid-screen" id="gridScreen">
+    <div class="grid-header">
+      <h2>가능한 시간을 드래그해서 선택해요</h2>
+      <div class="user-badge" id="userBadge"></div>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="legend"></div>
+    <div class="grid-wrap">
+      <table class="grid-table" id="gridTable"></table>
+    </div>
+    <div class="status-card">
+      <h3>👥 참여 현황 <span id="memberCount" style="color:#e8003a;"></span></h3>
+      <div class="member-list" id="memberList"></div>
+    </div>
+    <button class="btn-confirm" onclick="alert('방장이 최종 날짜를 확정할 수 있어요! (다음 단계에서 완성)')">
+      🎯 최종 합주 날짜 확정하기
+    </button>
+  </div>
+
+  <script>
+    const DAYS = ['일','월','화','수','목','금','토'];
+
+    // ── URL 파라미터 ──
+    const params       = new URLSearchParams(window.location.search);
+    const roomId       = params.get('id')        || 'demo_room';
+    const roomName     = params.get('name')      || '합주방';
+    const startDate    = params.get('start')     || '2026-02-16';
+    const endDate      = params.get('end')       || '2026-02-22';
+    const startHour    = parseInt(params.get('startTime') || '9');
+    const endHour      = parseInt(params.get('endTime')   || '22');
+    const unitMin      = parseInt(params.get('unit')      || '30');
+    const totalMembers = parseInt(params.get('members')   || '4');
+
+    document.getElementById('headerRoomName').textContent = roomName;
+    document.getElementById('roomTitle').innerHTML = `<span>${roomName}</span><br/>합주 시간을 같이 맞춰봐요`;
+
+    // ── 날짜/슬롯 배열 ──
+    function getDates(s, e) {
+      const arr = [], cur = new Date(s + 'T00:00:00');
+      const end = new Date(e + 'T00:00:00');
+      while (cur <= end) { arr.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+      return arr;
+    }
+    function getSlots(sh, eh, unit) {
+      const slots = [];
+      for (let h = sh; h < eh; h++)
+        for (let m = 0; m < 60; m += unit)
+          slots.push({ h, m });
+      return slots;
+    }
+    const dates = getDates(startDate, endDate);
+    const slots = getSlots(startHour, endHour, unitMin);
+
+    // ── 상태 ──
+    // selections[name] = { "di_si": true, ... }
+    let selections = {};
+    let myName = '';
+    let isDragging = false, dragMode = null;
+    let saveTimer = null;
+
+    function cellKey(di, si) { return `${di}_${si}`; }
+
+    function getCount(di, si) {
+      const k = cellKey(di, si);
+      return Object.values(selections).filter(s => s && s[k]).length;
+    }
+    function isMine(di, si) {
+      return !!(selections[myName] && selections[myName][cellKey(di, si)]);
+    }
+
+    // ── 색상 ──
+    function cellColor(di, si) {
+      const cnt = getCount(di, si);
+      if (cnt === 0) return '#fff';
+      if (cnt >= totalMembers) return '#e8003a';
+      const r = cnt / totalMembers;
+      if (r >= 0.66) return '#ff4d6d';
+      if (r >= 0.33) return '#ff8099';
+      return '#ffe0e6';
+    }
+
+    // ── 범례 ──
+    function buildLegend() {
+      const m = totalMembers;
+      const items = [
+        { color:'#fff',    label:'불가' },
+        { color:'#ffe0e6', label:'1명' },
+        { color:'#ff8099', label: m <= 4 ? '2명' : `2~${Math.floor(m*0.66)}명` },
+        { color:'#ff4d6d', label: m <= 4 ? '3명' : `${Math.floor(m*0.66)+1}~${m-1}명` },
+        { color:'#e8003a', label:`${m}명 모두!` },
+      ];
+      document.querySelector('.legend').innerHTML = items.map(i =>
+        `<div class="legend-item">
+          <div class="legend-dot" style="background:${i.color};"></div>
+          <span>${i.label}</span>
+        </div>`
+      ).join('');
+    }
+
+    // ── 그리드 ──
+    function buildGrid() {
+      const tbl = document.getElementById('gridTable');
+      tbl.innerHTML = '';
+      const thead = tbl.createTHead(), hrow = thead.insertRow();
+      const th0 = document.createElement('th'); hrow.appendChild(th0);
+      dates.forEach((d, di) => {
+        const th = document.createElement('th');
+        const day = d.getDay();
+        th.innerHTML = `${d.getMonth()+1}/${d.getDate()}<br/>${DAYS[day]}`;
+        if (day === 6) th.classList.add('sat');
+        if (day === 0) th.classList.add('sun');
+        hrow.appendChild(th);
+      });
+
+      const tbody = tbl.createTBody();
+      slots.forEach((slot, si) => {
+        const tr = tbody.insertRow();
+        if (slot.m === 0) tr.classList.add('on-the-hour');
+        const td0 = tr.insertCell();
+        td0.className = 'time-label';
+        if (slot.m === 0) {
+          const h = slot.h;
+          td0.textContent = h < 12 ? `오전 ${h}시` : h === 12 ? `오후 12시` : `오후 ${h-12}시`;
+        }
+        dates.forEach((d, di) => {
+          const td = tr.insertCell();
+          td.className = 'cell';
+          td.dataset.di = di; td.dataset.si = si;
+          td.style.background = cellColor(di, si);
+          td.addEventListener('mousedown', e => { e.preventDefault(); startDrag(di, si); });
+          td.addEventListener('mouseover', () => { if (isDragging) doDrag(di, si); });
+          td.addEventListener('touchstart', e => { e.preventDefault(); startDrag(di, si); }, { passive:false });
+          td.addEventListener('touchmove', e => {
+            e.preventDefault();
+            const t = e.touches[0];
+            const el = document.elementFromPoint(t.clientX, t.clientY);
+            if (el && el.dataset.di !== undefined) doDrag(+el.dataset.di, +el.dataset.si);
+          }, { passive:false });
+        });
+      });
+      document.addEventListener('mouseup',  () => { if(isDragging){ isDragging=false; scheduleSave(); } });
+      document.addEventListener('touchend', () => { if(isDragging){ isDragging=false; scheduleSave(); } });
+    }
+
+    function startDrag(di, si) {
+      isDragging = true;
+      dragMode = isMine(di, si) ? 'remove' : 'add';
+      toggle(di, si);
+    }
+    function doDrag(di, si) {
+      if (dragMode==='add'    && !isMine(di,si)) toggle(di,si);
+      if (dragMode==='remove' &&  isMine(di,si)) toggle(di,si);
+    }
+    function toggle(di, si) {
+      if (!selections[myName]) selections[myName] = {};
+      const k = cellKey(di, si);
+      if (dragMode === 'add') selections[myName][k] = true;
+      else delete selections[myName][k];
+      const td = document.querySelector(`td[data-di="${di}"][data-si="${si}"]`);
+      if (td) td.style.background = cellColor(di, si);
+    }
+
+    // ── Firebase 저장 (디바운스: 드래그 끝나고 0.5초 후 저장) ──
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      setStatus('saving', '저장 중...');
+      saveTimer = setTimeout(saveToFirebase, 500);
+    }
+
+    function setStatus(type, msg) {
+      const el = document.getElementById('saveStatus');
+      el.textContent = msg;
+      el.className = 'save-status ' + type;
+    }
+
+    function saveToFirebase() {
+      if (!window._db) { updateStatus(); return; } // Firebase 미연결 시 스킵
+      const dbRef = window._ref(window._db, `rooms/${roomId}/selections/${myName}`);
+      window._set(dbRef, selections[myName] || {})
+        .then(() => {
+          setStatus('saved', '✅ 저장됐어요!');
+          setTimeout(() => setStatus('', ''), 2000);
+        })
+        .catch(() => setStatus('', ''));
+      updateStatus();
+    }
+
+    // ── Firebase 실시간 수신 ──
+    function listenFirebase() {
+      if (!window._db) return;
+      const dbRef = window._ref(window._db, `rooms/${roomId}/selections`);
+      window._onValue(dbRef, snap => {
+        const data = snap.val() || {};
+        // 내 데이터는 덮어쓰지 않음
+        Object.keys(data).forEach(name => {
+          if (name !== myName) selections[name] = data[name];
+        });
+        refreshAllCells();
+        updateStatus();
+      });
+    }
+
+    function refreshAllCells() {
+      document.querySelectorAll('td.cell').forEach(td => {
+        td.style.background = cellColor(+td.dataset.di, +td.dataset.si);
+      });
+    }
+
+    // ── 참여 현황 ──
+    function updateStatus() {
+      const names = new Set(Object.keys(selections).filter(n => {
+        const s = selections[n];
+        return s && Object.keys(s).length > 0;
+      }));
+      document.getElementById('memberCount').textContent = `${names.size}명 참여중`;
+      const list = document.getElementById('memberList');
+      list.innerHTML = '';
+      names.forEach(n => {
+        const chip = document.createElement('div');
+        chip.className = 'member-chip' + (n === myName ? ' me' : '');
+        chip.textContent = n === myName ? `${n} (나)` : n;
+        list.appendChild(chip);
+      });
+    }
+
+    // ── 참여하기 ──
+    function enterRoom() {
+      const name = document.getElementById('userName').value.trim();
+      if (!name) { alert('이름을 입력해주세요!'); return; }
+      myName = name;
+      document.getElementById('nameScreen').style.display  = 'none';
+      document.getElementById('gridScreen').style.display  = 'flex';
+      document.getElementById('userBadge').textContent = `🎸 ${myName}`;
+      buildLegend();
+      buildGrid();
+      listenFirebase();
+      updateStatus();
+    }
+
+    document.getElementById('userName').addEventListener('keydown', e => {
+      if (e.key === 'Enter') enterRoom();
+    });
+
+    // ── Firebase 준비되면 로딩 → 이름 입력 화면 전환 ──
+    function showNameScreen() {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('nameScreen').style.display    = 'flex';
+    }
+
+    if (window._firebaseReady) {
+      showNameScreen();
+    } else {
+      document.addEventListener('firebaseReady', showNameScreen);
+      // Firebase 설정 안 됐을 때도 3초 후 그냥 진행
+      setTimeout(showNameScreen, 3000);
+    }
+  </script>
 </body>
 </html>
