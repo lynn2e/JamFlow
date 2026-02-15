@@ -4,209 +4,80 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JamFlow 🎸 결과</title>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
-      authDomain: "jamflow-dd033.firebaseapp.com",
-      databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
-      projectId: "jamflow-dd033",
-      storageBucket: "jamflow-dd033.firebasestorage.app",
-      messagingSenderId: "913570760402",
-      appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db  = getDatabase(app);
-    window._db = db; window._ref = ref;
-    window._onValue = onValue; window._set = set;
-    document.dispatchEvent(new Event('firebaseReady'));
-  </script>
-
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background:#fff; color:#111;
-      font-family:'Segoe UI', sans-serif;
-      min-height:100vh; display:flex;
-      flex-direction:column; align-items:center;
-    }
-    header {
-      width:100%; background:#111;
-      padding:16px 24px; display:flex; align-items:center; gap:10px;
-    }
+    body { background:#fff; color:#111; font-family:'Segoe UI',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+    header { width:100%; background:#111; padding:16px 24px; display:flex; align-items:center; gap:10px; }
     header h1 { color:#fff; font-size:1.4rem; font-weight:800; }
     header h1 span { color:#e8003a; }
     .room-name { color:#aaa; font-size:0.85rem; margin-left:4px; }
-
-    .spinner-wrap {
-      margin-top:80px; display:flex;
-      flex-direction:column; align-items:center; gap:16px; color:#888;
-    }
-    .spinner {
-      width:36px; height:36px;
-      border:3px solid #eee; border-top-color:#e8003a;
-      border-radius:50%; animation:spin 0.8s linear infinite;
-    }
+    .spinner-wrap { margin-top:80px; display:flex; flex-direction:column; align-items:center; gap:16px; color:#888; }
+    .spinner { width:36px; height:36px; border:3px solid #eee; border-top-color:#e8003a; border-radius:50%; animation:spin 0.8s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
-
-    .main {
-      display:none; width:100%; max-width:640px;
-      padding:24px 16px 60px; flex-direction:column; gap:24px;
-    }
-
-    /* 확정 배너 */
-    .confirmed-banner {
-      display:none;
-      background:#111; color:#fff;
-      border-radius:16px; padding:20px 24px;
-      text-align:center;
-    }
+    .main { display:none; width:100%; max-width:640px; padding:24px 16px 60px; flex-direction:column; gap:24px; }
+    .confirmed-banner { display:none; background:#111; color:#fff; border-radius:16px; padding:20px 24px; text-align:center; }
     .confirmed-banner h2 { font-size:1.2rem; font-weight:800; margin-bottom:6px; }
     .confirmed-banner h2 span { color:#e8003a; }
     .confirmed-banner p { font-size:0.88rem; color:#aaa; }
-
-    /* 추천 카드 */
-    .section-title {
-      font-size:1rem; font-weight:800; margin-bottom:12px;
-      display:flex; align-items:center; gap:8px;
-    }
+    .section-title { font-size:1rem; font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
     .recommend-list { display:flex; flex-direction:column; gap:10px; }
-    .recommend-card {
-      border:2px solid #eee; border-radius:14px;
-      padding:16px 18px; display:flex;
-      align-items:center; justify-content:space-between;
-      cursor:pointer; transition:border-color 0.2s, box-shadow 0.2s;
-    }
+    .recommend-card { border:2px solid #eee; border-radius:14px; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:border-color 0.2s, box-shadow 0.2s; }
     .recommend-card:hover { border-color:#e8003a; box-shadow:3px 3px 0 #e8003a; }
-    .recommend-card.top {
-      border-color:#e8003a; background:#fff5f7;
-      box-shadow:4px 4px 0 #111;
-    }
+    .recommend-card.top { border-color:#e8003a; background:#fff5f7; box-shadow:4px 4px 0 #111; }
+    .recommend-card.selected { border-color:#111; background:#f5f5f5; box-shadow:4px 4px 0 #e8003a; }
     .recommend-card .info { display:flex; flex-direction:column; gap:4px; }
     .recommend-card .date-text { font-size:1rem; font-weight:800; }
     .recommend-card .time-text { font-size:0.82rem; color:#666; }
-    .badge {
-      background:#e8003a; color:#fff;
-      font-size:0.72rem; font-weight:800;
-      padding:4px 10px; border-radius:20px;
-      white-space:nowrap;
-    }
+    .badge { background:#e8003a; color:#fff; font-size:0.72rem; font-weight:800; padding:4px 10px; border-radius:20px; white-space:nowrap; }
     .badge.gray { background:#eee; color:#888; }
-
-    /* 히트맵 */
-    .heatmap-wrap {
-      overflow-x:auto;
-      border:2px solid #111; border-radius:16px;
-      box-shadow:4px 4px 0 #111;
-    }
+    .heatmap-wrap { overflow-x:auto; border:2px solid #111; border-radius:16px; box-shadow:4px 4px 0 #111; }
     .heatmap-table { border-collapse:collapse; min-width:100%; }
-    .heatmap-table thead th {
-      background:#111; color:#fff;
-      font-size:0.75rem; font-weight:700;
-      padding:10px 4px; text-align:center;
-      white-space:nowrap; min-width:44px;
-    }
-    .heatmap-table thead th:first-child {
-      min-width:0; width:0; padding:0;
-      position:sticky; left:0; z-index:2;
-      border-right:2px solid #333;
-    }
+    .heatmap-table thead th { background:#111; color:#fff; font-size:0.75rem; font-weight:700; padding:10px 4px; text-align:center; white-space:nowrap; min-width:44px; }
+    .heatmap-table thead th:first-child { min-width:0; width:0; padding:0; position:sticky; left:0; z-index:2; border-right:2px solid #333; }
     .heatmap-table thead th.sat { color:#7eb8ff; }
     .heatmap-table thead th.sun { color:#ff7eb8; }
-    .heatmap-table tbody td.time-label {
-      background:#fafafa; font-size:0.65rem; color:#888;
-      font-weight:600; padding:0 6px; text-align:right;
-      white-space:nowrap; position:sticky; left:0; z-index:1;
-      border-right:2px solid #ccc; vertical-align:middle;
-    }
-    .heatmap-table tbody td.cell {
-      width:44px; height:16px;
-      border:1px solid #eee;
-    }
-    .heatmap-table tbody tr.on-the-hour td.cell { border-top:1px solid #ccc; }
-    /* 확정된 슬롯 강조 */
-    .heatmap-table tbody td.cell.confirmed-slot {
-      outline:2px solid #111;
-      outline-offset:-2px;
-    }
-
-    /* 범례 */
+    .heatmap-table tbody td.time-label { background:#fafafa; font-size:0.65rem; color:#888; font-weight:600; padding:0 6px; text-align:right; white-space:nowrap; position:sticky; left:0; z-index:1; border-right:2px solid #ccc; vertical-align:middle; }
+    .heatmap-table tbody td.cell { width:44px; height:16px; border:1px solid #eee; }
+    .heatmap-table tbody tr.on-the-hour td.cell { border-top:2px solid #bbb; }
+    .heatmap-table tbody tr.half-hour td.cell { border-top:1px dashed #d0d0d0; }
+    .heatmap-table tbody td.cell.confirmed-slot { outline:2px solid #111; outline-offset:-2px; }
     .legend { display:flex; gap:12px; align-items:center; font-size:0.8rem; color:#666; flex-wrap:wrap; }
     .legend-item { display:flex; align-items:center; gap:5px; }
     .legend-dot { width:13px; height:13px; border-radius:3px; border:1px solid #ddd; }
-
-    /* 확정 버튼 */
-    .btn-confirm {
-      width:100%; padding:16px;
-      background:#e8003a; color:#fff;
-      border:none; border-radius:12px;
-      font-size:1rem; font-weight:700;
-      cursor:pointer; box-shadow:4px 4px 0px #111;
-      transition:transform 0.15s, box-shadow 0.15s;
-    }
+    .btn-confirm { width:100%; padding:16px; background:#e8003a; color:#fff; border:none; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:4px 4px 0px #111; transition:transform 0.15s, box-shadow 0.15s; }
     .btn-confirm:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #111; }
     .btn-confirm:disabled { background:#ccc; box-shadow:none; cursor:default; }
-
-    /* 공유 박스 */
-    .share-box {
-      display:none;
-      border:2px solid #e8003a; border-radius:16px;
-      padding:20px; text-align:center; background:#fff5f7;
-    }
+    .share-box { display:none; border:2px solid #e8003a; border-radius:16px; padding:20px; text-align:center; background:#fff5f7; }
     .share-box h3 { font-size:1rem; font-weight:800; margin-bottom:8px; }
     .share-box p { font-size:0.85rem; color:#666; margin-bottom:14px; }
-    .share-text {
-      background:#fff; border:2px dashed #e8003a;
-      border-radius:10px; padding:12px 14px;
-      font-size:0.88rem; color:#333;
-      margin-bottom:14px; line-height:1.6;
-      word-break:keep-all;
-    }
-    .btn-copy {
-      background:#111; color:#fff; border:none;
-      border-radius:10px; padding:12px 24px;
-      font-size:0.9rem; font-weight:700; cursor:pointer;
-    }
-
-    /* 참여 현황 */
+    .share-text { background:#fff; border:2px dashed #e8003a; border-radius:10px; padding:12px 14px; font-size:0.88rem; color:#333; margin-bottom:14px; line-height:1.6; word-break:keep-all; }
+    .btn-copy { background:#111; color:#fff; border:none; border-radius:10px; padding:12px 24px; font-size:0.9rem; font-weight:700; cursor:pointer; }
     .member-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-    .member-chip {
-      background:#f5f5f5; border-radius:20px;
-      padding:5px 12px; font-size:0.82rem; font-weight:600;
-    }
+    .member-chip { background:#f5f5f5; border-radius:20px; padding:5px 12px; font-size:0.82rem; font-weight:600; }
+    /* 선택 안내 */
+    .select-hint { font-size:0.8rem; color:#888; margin-top:-8px; padding:0 4px; }
   </style>
 </head>
 <body>
-
 <header>
   <h1>Jam<span>Flow</span> 🎸</h1>
   <span class="room-name" id="headerRoomName"></span>
 </header>
-
 <div class="spinner-wrap" id="loadingScreen">
   <div class="spinner"></div>
   <span>결과 불러오는 중...</span>
 </div>
-
 <div class="main" id="main">
-
-  <!-- 확정 배너 (확정됐을 때만 표시) -->
   <div class="confirmed-banner" id="confirmedBanner">
     <h2>🎉 합주 날짜가 <span>확정</span>됐어요!</h2>
     <p id="confirmedText"></p>
   </div>
-
-  <!-- 추천 시간 -->
   <div>
     <div class="section-title">🏆 겹치는 시간 추천</div>
+    <p class="select-hint">카드를 눌러 확정할 시간을 선택하세요</p>
+    <br/>
     <div class="recommend-list" id="recommendList"></div>
   </div>
-
-  <!-- 히트맵 -->
   <div>
     <div class="section-title">🗓️ 전체 현황</div>
     <div class="legend" id="legend"></div>
@@ -215,309 +86,289 @@
       <table class="heatmap-table" id="heatmapTable"></table>
     </div>
   </div>
-
-  <!-- 참여 현황 -->
   <div>
     <div class="section-title">👥 참여 현황 <span id="memberCount" style="color:#e8003a; font-weight:400; font-size:0.9rem;"></span></div>
     <div class="member-list" id="memberList"></div>
   </div>
-
-  <!-- 확정 버튼 -->
-  <button class="btn-confirm" id="confirmBtn" onclick="confirmSchedule()">
-    🎯 이 시간으로 합주 확정하기
-  </button>
-
-  <!-- 공유 박스 -->
+  <button class="btn-confirm" id="confirmBtn" onclick="confirmSchedule()">🎯 이 시간으로 합주 확정하기</button>
   <div class="share-box" id="shareBox">
     <h3>📢 멤버들에게 공유해요!</h3>
     <p>아래 텍스트를 복사해서 단톡방에 보내세요</p>
     <div class="share-text" id="shareText"></div>
     <button class="btn-copy" onclick="copyShare()">📋 복사하기</button>
   </div>
-
 </div>
 
 <script>
-  const DAYS_FULL = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
-  const DAYS      = ['일','월','화','수','목','금','토'];
+var DAYS_FULL=['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+var DAYS=['일','월','화','수','목','금','토'];
+var params=new URLSearchParams(window.location.search);
+var roomId=params.get('id')||'demo_room';
+var roomName=params.get('name')||'합주방';
+var startDate=params.get('start')||'2026-02-16';
+var endDate=params.get('end')||'2026-02-22';
+var startHour=parseInt(params.get('startTime')||'9');
+var endHour=parseInt(params.get('endTime')||'22');
+var unitMin=parseInt(params.get('unit')||'30');
+var totalMembers=parseInt(params.get('members')||'4');
 
-  const params       = new URLSearchParams(window.location.search);
-  const roomId       = params.get('id')        || 'demo_room';
-  const roomName     = params.get('name')      || '합주방';
-  const startDate    = params.get('start')     || '2026-02-16';
-  const endDate      = params.get('end')       || '2026-02-22';
-  const startHour    = parseInt(params.get('startTime') || '9');
-  const endHour      = parseInt(params.get('endTime')   || '22');
-  const unitMin      = parseInt(params.get('unit')      || '30');
-  const totalMembers = parseInt(params.get('members')   || '4');
+document.getElementById('headerRoomName').textContent=roomName;
 
-  document.getElementById('headerRoomName').textContent = roomName;
+function getDates(s,e){
+  var arr=[],cur=new Date(s+'T00:00:00'),end=new Date(e+'T00:00:00');
+  while(cur<=end){arr.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+  return arr;
+}
+function getSlots(sh,eh,unit){
+  var arr=[];
+  for(var h=sh;h<eh;h++)for(var m=0;m<60;m+=unit)arr.push({h:h,m:m});
+  return arr;
+}
+var dates=getDates(startDate,endDate);
+var slots=getSlots(startHour,endHour,unitMin);
+var selections={};
+var confirmedSlot=null;
+var selectedSlot=null;
 
-  function getDates(s, e) {
-    const arr = [], cur = new Date(s+'T00:00:00'), end = new Date(e+'T00:00:00');
-    while (cur <= end) { arr.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
-    return arr;
+function cellKey(di,si){return di+'_'+si;}
+function getCount(di,si){
+  return Object.keys(selections).filter(function(s){return selections[s]&&selections[s][cellKey(di,si)];}).length;
+}
+function cellColor(di,si){
+  var cnt=getCount(di,si);
+  if(cnt===0)return '#fff';
+  if(cnt>=totalMembers)return '#e8003a';
+  var r=cnt/totalMembers;
+  if(r>=0.66)return '#ff4d6d';
+  if(r>=0.33)return '#ff8099';
+  return '#ffe0e6';
+}
+function timeLabel(h,m){
+  var ampm=h<12?'오전':'오후';
+  var hh=h===0?12:h>12?h-12:h;
+  return m===0?ampm+' '+hh+'시':ampm+' '+hh+'시 '+m+'분';
+}
+
+function getTopSlots(n){
+  var scored=[];
+  for(var di=0;di<dates.length;di++)
+    for(var si=0;si<slots.length;si++){
+      var cnt=getCount(di,si);
+      if(cnt>0)scored.push({di:di,si:si,cnt:cnt,d:dates[di],slot:slots[si]});
+    }
+  scored.sort(function(a,b){return b.cnt-a.cnt;});
+  var groups=[];
+  scored.slice(0,20).forEach(function(item){
+    var last=groups[groups.length-1];
+    if(last&&last.di===item.di&&item.si===last.endSi+1&&item.cnt===last.cnt){
+      last.endSi=item.si;
+    } else {
+      groups.push({di:item.di,si:item.si,endSi:item.si,cnt:item.cnt,d:item.d,slot:item.slot});
+    }
+  });
+  return groups.slice(0,n||3);
+}
+
+function buildRecommend(){
+  var tops=getTopSlots(3);
+  var list=document.getElementById('recommendList');
+  list.innerHTML='';
+  if(tops.length===0){
+    list.innerHTML='<p style="color:#aaa;font-size:0.9rem;padding:8px;">아직 응답한 멤버가 없어요</p>';
+    document.getElementById('confirmBtn').disabled=true;
+    return;
   }
-  function getSlots(sh, eh, unit) {
-    const arr = [];
-    for (let h = sh; h < eh; h++)
-      for (let m = 0; m < 60; m += unit)
-        arr.push({ h, m });
-    return arr;
-  }
-  const dates = getDates(startDate, endDate);
-  const slots = getSlots(startHour, endHour, unitMin);
+  tops.forEach(function(t,i){
+    var card=document.createElement('div');
+    card.className='recommend-card'+(i===0?' top':'');
+    var d=t.d;
+    var dateStr=(d.getMonth()+1)+'월 '+d.getDate()+'일 '+DAYS_FULL[d.getDay()];
+    var startT=timeLabel(t.slot.h,t.slot.m);
+    var endSlot=slots[t.endSi]||t.slot;
+    var endH=t.endSi<slots.length-1?slots[t.endSi+1].h:endSlot.h;
+    var endM=t.endSi<slots.length-1?slots[t.endSi+1].m:(endSlot.m+unitMin)%60;
+    var endT=timeLabel(endH,endM);
+    card.innerHTML='<div class="info"><div class="date-text">'+dateStr+'</div><div class="time-text">'+startT+' ~ '+endT+'</div></div>'
+      +'<div class="badge '+(i===0?'':'gray')+'">'+t.cnt+'명 가능'+(t.cnt>=totalMembers?' 🎉':'')+'</div>';
+    card.addEventListener('click',function(){selectSlot(t,card);});
+    list.appendChild(card);
+  });
+  /* 기본 1위 선택 */
+  if(tops[0])selectSlot(tops[0],list.firstChild);
+}
 
-  let selections = {};
-  let confirmedSlot = null; // { di, si, count }
-  let selectedSlot  = null; // 방장이 클릭해서 고른 슬롯
+function selectSlot(t,card){
+  document.querySelectorAll('.recommend-card').forEach(function(c){c.classList.remove('top','selected');});
+  card.classList.add('top','selected');
+  selectedSlot=t;
+  /* 히트맵에서 해당 슬롯 하이라이트 */
+  document.querySelectorAll('.heatmap-table td.cell').forEach(function(td){
+    var di=parseInt(td.dataset.di),si=parseInt(td.dataset.si);
+    if(di===t.di&&si>=t.si&&si<=t.endSi){
+      td.style.outline='3px solid #ffd600';
+      td.style.outlineOffset='-3px';
+      td.style.zIndex='2';
+      td.style.position='relative';
+    } else {
+      td.style.outline='';td.style.zIndex='';td.style.position='';
+    }
+    if(confirmedSlot&&confirmedSlot.di===di&&si>=confirmedSlot.si&&si<=confirmedSlot.endSi){
+      td.classList.add('confirmed-slot');
+    } else {
+      td.classList.remove('confirmed-slot');
+    }
+  });
+}
 
-  function cellKey(di, si) { return `${di}_${si}`; }
-
-  function getCount(di, si) {
-    return Object.values(selections).filter(s => s && s[cellKey(di,si)]).length;
-  }
-
-  function cellColor(di, si) {
-    const cnt = getCount(di, si);
-    if (cnt === 0) return '#fff';
-    if (cnt >= totalMembers) return '#e8003a';
-    const r = cnt / totalMembers;
-    if (r >= 0.66) return '#ff4d6d';
-    if (r >= 0.33) return '#ff8099';
-    return '#ffe0e6';
-  }
-
-  function timeLabel(h, m) {
-    const ampm = h < 12 ? '오전' : '오후';
-    const hh   = h === 0 ? 12 : h > 12 ? h-12 : h;
-    return m === 0 ? `${ampm} ${hh}시` : `${ampm} ${hh}시 ${m}분`;
-  }
-
-  // ── 추천 시간 계산 ──
-  function getTopSlots(n=3) {
-    const scored = [];
-    dates.forEach((d, di) => {
-      slots.forEach((slot, si) => {
-        const cnt = getCount(di, si);
-        if (cnt > 0) scored.push({ di, si, cnt, d, slot });
-      });
-    });
-    scored.sort((a,b) => b.cnt - a.cnt);
-
-    // 연속된 슬롯을 묶기
-    const groups = [];
-    scored.slice(0, 20).forEach(item => {
-      const last = groups[groups.length-1];
-      if (last && last.di === item.di && item.si === last.endSi+1 && item.cnt === last.cnt) {
-        last.endSi = item.si;
-      } else {
-        groups.push({ ...item, endSi: item.si });
+function buildHeatmap(){
+  var tbl=document.getElementById('heatmapTable');
+  tbl.innerHTML='';
+  var thead=tbl.createTHead(),hrow=thead.insertRow();
+  var th0=document.createElement('th');hrow.appendChild(th0);
+  dates.forEach(function(d,di){
+    var th=document.createElement('th');
+    var day=d.getDay();
+    th.innerHTML=(d.getMonth()+1)+'/'+(d.getDate())+'<br/>'+DAYS[day];
+    if(day===6)th.classList.add('sat');
+    if(day===0)th.classList.add('sun');
+    hrow.appendChild(th);
+  });
+  var tbody=tbl.createTBody();
+  slots.forEach(function(slot,si){
+    var tr=tbody.insertRow();
+    if(slot.m===0){tr.classList.add('on-the-hour');}
+    else if(unitMin===15&&slot.m===30){tr.classList.add('half-hour');}
+    var td0=tr.insertCell();td0.className='time-label';
+    if(slot.m===0){td0.textContent=timeLabel(slot.h,0);}
+    else if(unitMin===15&&slot.m===30){td0.textContent=':30';td0.style.color='#bbb';}
+    dates.forEach(function(d,di){
+      var td=tr.insertCell();
+      td.className='cell';
+      td.dataset.di=di;td.dataset.si=si;
+      td.style.background=cellColor(di,si);
+      if(confirmedSlot&&confirmedSlot.di===di&&si>=confirmedSlot.si&&si<=confirmedSlot.endSi){
+        td.classList.add('confirmed-slot');
       }
     });
-    return groups.slice(0, n);
-  }
+  });
+}
 
-  function buildRecommend() {
-    const tops = getTopSlots(3);
-    const list = document.getElementById('recommendList');
-    list.innerHTML = '';
+function buildLegend(){
+  var m=totalMembers;
+  var items=[
+    {color:'#fff',label:'불가'},
+    {color:'#ffe0e6',label:'1명'},
+    {color:'#ff8099',label:m<=4?'2명':'2~'+Math.floor(m*0.66)+'명'},
+    {color:'#ff4d6d',label:m<=4?'3명':(Math.floor(m*0.66)+1)+'~'+(m-1)+'명'},
+    {color:'#e8003a',label:m+'명 모두!'}
+  ];
+  document.getElementById('legend').innerHTML=items.map(function(i){
+    return '<div class="legend-item"><div class="legend-dot" style="background:'+i.color+';"></div><span>'+i.label+'</span></div>';
+  }).join('');
+}
 
-    if (tops.length === 0) {
-      list.innerHTML = '<p style="color:#aaa; font-size:0.9rem; padding:8px;">아직 응답한 멤버가 없어요</p>';
-      document.getElementById('confirmBtn').disabled = true;
-      return;
-    }
+function buildMembers(){
+  var names=Object.keys(selections).filter(function(n){var s=selections[n];return s&&Object.keys(s).length>0;});
+  document.getElementById('memberCount').textContent=names.length+'명 참여';
+  document.getElementById('memberList').innerHTML=names.map(function(n){
+    return '<div class="member-chip">'+n+'</div>';
+  }).join('');
+}
 
-    tops.forEach((t, i) => {
-      const card = document.createElement('div');
-      card.className = 'recommend-card' + (i===0 ? ' top' : '');
-      card.dataset.di = t.di;
-      card.dataset.si = t.si;
-
-      const d     = t.d;
-      const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS_FULL[d.getDay()]}`;
-      const startT  = timeLabel(t.slot.h, t.slot.m);
-      const endSlot = slots[t.endSi] || t.slot;
-      const endH    = t.endSi < slots.length-1 ? slots[t.endSi+1].h : endSlot.h;
-      const endM    = t.endSi < slots.length-1 ? slots[t.endSi+1].m : (endSlot.m + unitMin) % 60;
-      const endT    = timeLabel(endH, endM);
-
-      card.innerHTML = `
-        <div class="info">
-          <div class="date-text">${dateStr}</div>
-          <div class="time-text">${startT} ~ ${endT}</div>
-        </div>
-        <div class="badge ${i===0?'':'gray'}">${t.cnt}명 가능${t.cnt>=totalMembers?' 🎉':''}</div>
-      `;
-      card.addEventListener('click', () => selectSlot(t, card));
-      list.appendChild(card);
+function confirmSchedule(){
+  if(!selectedSlot){alert('시간을 선택해주세요!');return;}
+  var t=selectedSlot;
+  var d=t.d;
+  var dateStr=(d.getMonth()+1)+'월 '+d.getDate()+'일 '+DAYS_FULL[d.getDay()];
+  var startT=timeLabel(t.slot.h,t.slot.m);
+  var endSlot=slots[t.endSi]||t.slot;
+  var endH=t.endSi<slots.length-1?slots[t.endSi+1].h:endSlot.h;
+  var endM=t.endSi<slots.length-1?slots[t.endSi+1].m:(endSlot.m+unitMin)%60;
+  var endT=timeLabel(endH,endM);
+  var fullText=dateStr+' '+startT+' ~ '+endT;
+  if(!confirm('"'+fullText+'"으로 합주를 확정할까요?'))return;
+  confirmedSlot=t;
+  if(window._db){
+    window._db.ref('rooms/'+roomId+'/confirmed').set({
+      di:t.di,si:t.si,endSi:t.endSi,text:fullText
     });
-
-    // 기본으로 1위 선택
-    if (tops[0]) selectSlot(tops[0], list.firstChild);
   }
+  showConfirmed(fullText);
+}
 
-  function selectSlot(t, card) {
-    document.querySelectorAll('.recommend-card').forEach(c => c.classList.remove('top'));
-    card.classList.add('top');
-    selectedSlot = t;
-  }
+function showConfirmed(text){
+  document.getElementById('confirmedBanner').style.display='block';
+  document.getElementById('confirmedText').textContent=text;
+  document.getElementById('confirmBtn').disabled=true;
+  document.getElementById('confirmBtn').textContent='✅ 확정 완료!';
+  var shareMsg='🎸 '+roomName+' 합주 날짜 확정!\n\n📅 '+text+'\n\n모두 참석 부탁드려요 🙏';
+  document.getElementById('shareText').textContent=shareMsg;
+  document.getElementById('shareBox').style.display='block';
+  buildHeatmap();
+  document.getElementById('confirmedBanner').scrollIntoView({behavior:'smooth',block:'center'});
+}
 
-  // ── 히트맵 ──
-  function buildHeatmap() {
-    const tbl = document.getElementById('heatmapTable');
-    tbl.innerHTML = '';
-    const thead = tbl.createTHead(), hrow = thead.insertRow();
-    const th0 = document.createElement('th'); hrow.appendChild(th0);
-    dates.forEach((d, di) => {
-      const th = document.createElement('th');
-      const day = d.getDay();
-      th.innerHTML = `${d.getMonth()+1}/${d.getDate()}<br/>${DAYS[day]}`;
-      if (day===6) th.classList.add('sat');
-      if (day===0) th.classList.add('sun');
-      hrow.appendChild(th);
-    });
+function copyShare(){
+  var text=document.getElementById('shareText').textContent;
+  navigator.clipboard.writeText(text).then(function(){alert('✅ 복사됐어요! 단톡방에 붙여넣기 하세요 🎶');})
+  .catch(function(){
+    var el=document.createElement('textarea');
+    el.value=text;document.body.appendChild(el);
+    el.select();document.execCommand('copy');
+    document.body.removeChild(el);
+    alert('✅ 복사됐어요!');
+  });
+}
 
-    const tbody = tbl.createTBody();
-    slots.forEach((slot, si) => {
-      const tr = tbody.insertRow();
-      if (slot.m===0) tr.classList.add('on-the-hour');
-      const td0 = tr.insertCell();
-      td0.className = 'time-label';
-      if (slot.m===0) td0.textContent = timeLabel(slot.h, 0);
-      dates.forEach((d, di) => {
-        const td = tr.insertCell();
-        td.className = 'cell';
-        td.dataset.di = di; td.dataset.si = si;
-        td.style.background = cellColor(di, si);
-        if (confirmedSlot && confirmedSlot.di===di && si>=confirmedSlot.si && si<=confirmedSlot.endSi) {
-          td.classList.add('confirmed-slot');
+function renderAll(){
+  buildLegend();buildRecommend();buildHeatmap();buildMembers();
+  document.getElementById('loadingScreen').style.display='none';
+  document.getElementById('main').style.display='flex';
+}
+
+/* ── Firebase compat v9 로드 (카카오 브라우저 호환) ── */
+function loadData(){
+  if(!window._db){renderAll();return;}
+  window._db.ref('rooms/'+roomId).on('value',function(snap){
+    var data=snap.val()||{};
+    selections=data.selections||{};
+    if(data.confirmed){confirmedSlot=data.confirmed;showConfirmed(data.confirmed.text);}
+    renderAll();
+  });
+}
+
+function loadFirebase(){
+  var s1=document.createElement('script');
+  s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  s1.onload=function(){
+    var s2=document.createElement('script');
+    s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+    s2.onload=function(){
+      try{
+        var existingApp;
+        try{existingApp=firebase.app();}catch(e){}
+        if(!existingApp){
+          firebase.initializeApp({
+            apiKey:"AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
+            authDomain:"jamflow-dd033.firebaseapp.com",
+            databaseURL:"https://jamflow-dd033-default-rtdb.firebaseio.com",
+            projectId:"jamflow-dd033",
+            storageBucket:"jamflow-dd033.firebasestorage.app",
+            messagingSenderId:"913570760402",
+            appId:"1:913570760402:web:18450473aa2b0a25b18f0b"
+          });
         }
-      });
-    });
-  }
-
-  // ── 범례 ──
-  function buildLegend() {
-    const m = totalMembers;
-    const items = [
-      { color:'#fff',    label:'불가' },
-      { color:'#ffe0e6', label:'1명' },
-      { color:'#ff8099', label: m<=4 ? '2명' : `2~${Math.floor(m*0.66)}명` },
-      { color:'#ff4d6d', label: m<=4 ? '3명' : `${Math.floor(m*0.66)+1}~${m-1}명` },
-      { color:'#e8003a', label:`${m}명 모두!` },
-    ];
-    document.getElementById('legend').innerHTML = items.map(i =>
-      `<div class="legend-item">
-        <div class="legend-dot" style="background:${i.color};"></div>
-        <span>${i.label}</span>
-      </div>`
-    ).join('');
-  }
-
-  // ── 참여 현황 ──
-  function buildMembers() {
-    const names = Object.keys(selections).filter(n => {
-      const s = selections[n]; return s && Object.keys(s).length > 0;
-    });
-    document.getElementById('memberCount').textContent = `${names.length}명 참여`;
-    document.getElementById('memberList').innerHTML = names.map(n =>
-      `<div class="member-chip">${n}</div>`
-    ).join('');
-  }
-
-  // ── 합주 확정 ──
-  function confirmSchedule() {
-    if (!selectedSlot) { alert('시간을 선택해주세요!'); return; }
-    const t = selectedSlot;
-    const d = t.d;
-    const dateStr  = `${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS_FULL[d.getDay()]}`;
-    const startT   = timeLabel(t.slot.h, t.slot.m);
-    const endSlot  = slots[t.endSi] || t.slot;
-    const endH     = t.endSi < slots.length-1 ? slots[t.endSi+1].h : endSlot.h;
-    const endM     = t.endSi < slots.length-1 ? slots[t.endSi+1].m : (endSlot.m+unitMin)%60;
-    const endT     = timeLabel(endH, endM);
-    const fullText = `${dateStr} ${startT} ~ ${endT}`;
-
-    if (!confirm(`"${fullText}"으로 합주를 확정할까요?`)) return;
-
-    confirmedSlot = t;
-
-    // Firebase에 저장
-    if (window._db) {
-      window._set(window._ref(window._db, `rooms/${roomId}/confirmed`), {
-        di: t.di, si: t.si, endSi: t.endSi,
-        text: fullText
-      });
-    }
-
-    showConfirmed(fullText);
-  }
-
-  function showConfirmed(text) {
-    document.getElementById('confirmedBanner').style.display = 'block';
-    document.getElementById('confirmedText').textContent = text;
-    document.getElementById('confirmBtn').disabled = true;
-    document.getElementById('confirmBtn').textContent = '✅ 확정 완료!';
-
-    // 공유 텍스트 생성
-    const shareMsg = `🎸 ${roomName} 합주 날짜 확정!\n\n📅 ${text}\n\n모두 참석 부탁드려요 🙏`;
-    document.getElementById('shareText').textContent = shareMsg;
-    document.getElementById('shareBox').style.display = 'block';
-
-    buildHeatmap(); // 확정 슬롯 하이라이트 반영
-    document.getElementById('confirmedBanner').scrollIntoView({ behavior:'smooth', block:'center' });
-  }
-
-  function copyShare() {
-    const text = document.getElementById('shareText').textContent;
-    navigator.clipboard.writeText(text).then(() => alert('✅ 복사됐어요! 단톡방에 붙여넣기 하세요 🎶'))
-    .catch(() => {
-      const el = document.createElement('textarea');
-      el.value = text; document.body.appendChild(el);
-      el.select(); document.execCommand('copy');
-      document.body.removeChild(el);
-      alert('✅ 복사됐어요!');
-    });
-  }
-
-  // ── Firebase 데이터 수신 ──
-  function loadData() {
-    if (!window._db) { renderAll(); return; }
-
-    window._onValue(window._ref(window._db, `rooms/${roomId}`), snap => {
-      const data = snap.val() || {};
-      selections = data.selections || {};
-
-      // 이미 확정된 경우
-      if (data.confirmed) {
-        confirmedSlot = data.confirmed;
-        showConfirmed(data.confirmed.text);
-      }
-      renderAll();
-    });
-  }
-
-  function renderAll() {
-    buildLegend();
-    buildRecommend();
-    buildHeatmap();
-    buildMembers();
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('main').style.display = 'flex';
-  }
-
-  if (window._db) {
-    loadData();
-  } else {
-    document.addEventListener('firebaseReady', loadData);
-    setTimeout(() => {
-      if (document.getElementById('loadingScreen').style.display !== 'none') {
-        loadData();
-      }
-    }, 3000);
-  }
+        window._db=firebase.database();
+      }catch(e){console.log('Firebase 초기화 실패:',e);}
+      loadData();
+    };
+    s2.onerror=function(){loadData();};
+    document.head.appendChild(s2);
+  };
+  s1.onerror=function(){loadData();};
+  document.head.appendChild(s1);
+}
+loadFirebase();
 </script>
 </body>
 </html>
