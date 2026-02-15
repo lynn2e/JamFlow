@@ -68,7 +68,7 @@
     .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:12px 20px; border-radius:12px; font-size:0.88rem; font-weight:600; box-shadow:0 4px 16px rgba(0,0,0,0.2); opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:999; white-space:nowrap; }
     .toast.show { opacity:1; }
     /* 클릭 하이라이트 */
-    td.cell.highlight-slot { outline:3px solid #ffd600 !important; outline-offset:-3px; }
+    /* highlight-slot: SVG 오버레이로 처리 */
   </style>
 </head>
 <body>
@@ -216,10 +216,10 @@ function buildLegend(){
   var m=totalMembers;
   var items=[
     {color:'#fff',label:'불가'},
-    {color:'#ffe0e6',label:'내꺼'},
-    {color:'#eee',label:'남꺼'},
+    {color:'#ffe0e6',label:'내 선택'},
+    {color:'#eee',label:'다른사람'},
     {color:'#ff8099',label:'겹침'},
-    {color:'#e8003a',label:m+'명 모두!'}
+    {color:'#e8003a',label:'전원 가능!'}
   ];
   var html='';
   for(var i=0;i<items.length;i++)
@@ -288,6 +288,60 @@ function drawMineOutline(){
     });
   });
   wrap.appendChild(svg);
+}
+
+/* 추천 카드 클릭 시 해당 블록 전체 외곽선 (노란색 SVG) */
+function drawHighlightOutline(di, siStart, siEnd){
+  removeHighlightOutline();
+  var wrap=document.getElementById('gridWrap');
+  var tbl=document.getElementById('gridTable');
+  if(!tbl)return;
+
+  /* 해당 범위 셀 수집 */
+  var cellMap={};
+  for(var s=siStart;s<=siEnd;s++){
+    var td=tbl.querySelector('td[data-di="'+di+'"][data-si="'+s+'"]');
+    if(td)cellMap[di+'_'+s]=td;
+  }
+  if(Object.keys(cellMap).length===0)return;
+
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.id='highlightOverlay';
+  svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible;';
+
+  var wrapRect=wrap.getBoundingClientRect();
+  Object.keys(cellMap).forEach(function(key){
+    var td=cellMap[key];
+    var parts=key.split('_');
+    var cdi=parseInt(parts[0]),csi=parseInt(parts[1]);
+    var rect=td.getBoundingClientRect();
+    var x=rect.left-wrapRect.left+wrap.scrollLeft;
+    var y=rect.top-wrapRect.top+wrap.scrollTop;
+    var w=rect.width,h=rect.height;
+    var neighbors=[
+      {nk:cdi+'_'+(csi-1),x1:x,y1:y,x2:x+w,y2:y},
+      {nk:cdi+'_'+(csi+1),x1:x,y1:y+h,x2:x+w,y2:y+h},
+      {nk:(cdi-1)+'_'+csi,x1:x,y1:y,x2:x,y2:y+h},
+      {nk:(cdi+1)+'_'+csi,x1:x+w,y1:y,x2:x+w,y2:y+h}
+    ];
+    neighbors.forEach(function(nb){
+      if(!cellMap[nb.nk]){
+        var line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',nb.x1);line.setAttribute('y1',nb.y1);
+        line.setAttribute('x2',nb.x2);line.setAttribute('y2',nb.y2);
+        line.setAttribute('stroke','#ffd600');
+        line.setAttribute('stroke-width','3');
+        line.setAttribute('stroke-linecap','square');
+        svg.appendChild(line);
+      }
+    });
+  });
+  wrap.appendChild(svg);
+}
+
+function removeHighlightOutline(){
+  var old=document.getElementById('highlightOverlay');
+  if(old)old.remove();
 }
 
 function buildGrid(){
@@ -432,17 +486,20 @@ function updateRecommend(){
         if(targetWeek!==-1&&targetWeek!==currentWeek){
           currentWeek=targetWeek;updateWeekNav();buildGrid();
         }
-        /* 하이라이트 */
+        /* 하이라이트: SVG 외곽선으로 전체 블록 테두리 */
         setTimeout(function(){
-          document.querySelectorAll('.cell.highlight-slot').forEach(function(c){c.classList.remove('highlight-slot');});
-          for(var s=g.si;s<=g.endSi;s++){
-            var target=document.querySelector('td[data-di="'+g.di+'"][data-si="'+s+'"]');
-            if(target)target.classList.add('highlight-slot');
+          drawHighlightOutline(g.di, g.si, g.endSi);
+          /* 해당 범위 셀 배경 노란색으로 */
+          var _highlighted=[];
+          for(var _s=g.si;_s<=g.endSi;_s++){
+            var _td=document.querySelector('td[data-di="'+g.di+'"][data-si="'+_s+'"]');
+            if(_td){_highlighted.push({el:_td,orig:_td.style.background});_td.style.background='rgba(255,214,0,0.35)';}
           }
           var firstCell=document.querySelector('td[data-di="'+g.di+'"][data-si="'+g.si+'"]');
           if(firstCell)firstCell.scrollIntoView({behavior:'smooth',block:'center'});
           setTimeout(function(){
-            document.querySelectorAll('.cell.highlight-slot').forEach(function(c){c.classList.remove('highlight-slot');});
+            removeHighlightOutline();
+            _highlighted.forEach(function(item){item.el.style.background=item.orig;});
           },2500);
         },50);
         showToast('📍 해당 시간대로 이동했어요!',1500);
