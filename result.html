@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2566">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="ko"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;JamFlow 🎸 결과&lt;/title&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;script type="module"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const firebaseConfig = {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>authDomain: "jamflow-dd033.firebaseapp.com",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>projectId: "jamflow-dd033",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>storageBucket: "jamflow-dd033.firebasestorage.app",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>messagingSenderId: "913570760402",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>appId: "1:913570760402:web:18450473aa2b0a25b18f0b"</p>
+<p class="p1"><span class="Apple-converted-space">    </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const app = initializeApp(firebaseConfig);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const db<span class="Apple-converted-space">  </span>= getDatabase(app);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>window._db = db; window._ref = ref;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>window._onValue = onValue; window._set = set;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.dispatchEvent(new Event('firebaseReady'));</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>* { margin:0; padding:0; box-sizing:border-box; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#fff; color:#111;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-family:'Segoe UI', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>min-height:100vh; display:flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>flex-direction:column; align-items:center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>header {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>width:100%; background:#111;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:16px 24px; display:flex; align-items:center; gap:10px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>header h1 { color:#fff; font-size:1.4rem; font-weight:800; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>header h1 span { color:#e8003a; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.room-name { color:#aaa; font-size:0.85rem; margin-left:4px; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>.spinner-wrap {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-top:80px; display:flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>flex-direction:column; align-items:center; gap:16px; color:#888;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.spinner {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>width:36px; height:36px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:3px solid #eee; border-top-color:#e8003a;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius:50%; animation:spin 0.8s linear infinite;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>@keyframes spin { to { transform:rotate(360deg); } }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>.main {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display:none; width:100%; max-width:640px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:24px 16px 60px; flex-direction:column; gap:24px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 확정 배너 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.confirmed-banner {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display:none;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius:16px; padding:20px 24px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>text-align:center;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.confirmed-banner h2 { font-size:1.2rem; font-weight:800; margin-bottom:6px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.confirmed-banner h2 span { color:#e8003a; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.confirmed-banner p { font-size:0.88rem; color:#aaa; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 추천 카드 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.section-title {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:1rem; font-weight:800; margin-bottom:12px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display:flex; align-items:center; gap:8px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-list { display:flex; flex-direction:column; gap:10px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:2px solid #eee; border-radius:14px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:16px 18px; display:flex;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>align-items:center; justify-content:space-between;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>cursor:pointer; transition:border-color 0.2s, box-shadow 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card:hover { border-color:#e8003a; box-shadow:3px 3px 0 #e8003a; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card.top {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-color:#e8003a; background:#fff5f7;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow:4px 4px 0 #111;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card .info { display:flex; flex-direction:column; gap:4px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card .date-text { font-size:1rem; font-weight:800; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.recommend-card .time-text { font-size:0.82rem; color:#666; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.badge {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#e8003a; color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.72rem; font-weight:800;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:4px 10px; border-radius:20px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>white-space:nowrap;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.badge.gray { background:#eee; color:#888; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 히트맵 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-wrap {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>overflow-x:auto;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:2px solid #111; border-radius:16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow:4px 4px 0 #111;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table { border-collapse:collapse; min-width:100%; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table thead th {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.75rem; font-weight:700;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:10px 4px; text-align:center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>white-space:nowrap; min-width:44px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table thead th:first-child {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>min-width:0; width:0; padding:0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>position:sticky; left:0; z-index:2;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-right:2px solid #333;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table thead th.sat { color:#7eb8ff; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table thead th.sun { color:#ff7eb8; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table tbody td.time-label {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#fafafa; font-size:0.65rem; color:#888;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-weight:600; padding:0 6px; text-align:right;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>white-space:nowrap; position:sticky; left:0; z-index:1;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-right:2px solid #ccc; vertical-align:middle;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table tbody td.cell {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>width:44px; height:16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:1px solid #eee;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table tbody tr.on-the-hour td.cell { border-top:1px solid #ccc; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 확정된 슬롯 강조 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.heatmap-table tbody td.cell.confirmed-slot {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>outline:2px solid #111;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>outline-offset:-2px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 범례 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.legend { display:flex; gap:12px; align-items:center; font-size:0.8rem; color:#666; flex-wrap:wrap; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.legend-item { display:flex; align-items:center; gap:5px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.legend-dot { width:13px; height:13px; border-radius:3px; border:1px solid #ddd; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 확정 버튼 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-confirm {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>width:100%; padding:16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#e8003a; color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:none; border-radius:12px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:1rem; font-weight:700;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>cursor:pointer; box-shadow:4px 4px 0px #111;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>transition:transform 0.15s, box-shadow 0.15s;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-confirm:active { transform:translate(2px,2px); box-shadow:2px 2px 0px #111; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-confirm:disabled { background:#ccc; box-shadow:none; cursor:default; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 공유 박스 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.share-box {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display:none;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border:2px solid #e8003a; border-radius:16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:20px; text-align:center; background:#fff5f7;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.share-box h3 { font-size:1rem; font-weight:800; margin-bottom:8px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.share-box p { font-size:0.85rem; color:#666; margin-bottom:14px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.share-text {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#fff; border:2px dashed #e8003a;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius:10px; padding:12px 14px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.88rem; color:#333;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom:14px; line-height:1.6;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>word-break:keep-all;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-copy {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#111; color:#fff; border:none;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius:10px; padding:12px 24px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size:0.9rem; font-weight:700; cursor:pointer;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>/* 참여 현황 */</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.member-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.member-chip {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background:#f5f5f5; border-radius:20px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding:5px 12px; font-size:0.82rem; font-weight:600;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;header&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;Jam&lt;span&gt;Flow&lt;/span&gt; 🎸&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;span class="room-name" id="headerRoomName"&gt;&lt;/span&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;div class="spinner-wrap" id="loadingScreen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="spinner"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;span&gt;결과 불러오는 중...&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;div class="main" id="main"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 확정 배너 (확정됐을 때만 표시) --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="confirmed-banner" id="confirmedBanner"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h2&gt;🎉 합주 날짜가 &lt;span&gt;확정&lt;/span&gt;됐어요!&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p id="confirmedText"&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 추천 시간 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="section-title"&gt;🏆 겹치는 시간 추천&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="recommend-list" id="recommendList"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 히트맵 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="section-title"&gt;🗓️ 전체 현황&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="legend" id="legend"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;br/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="heatmap-wrap"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;table class="heatmap-table" id="heatmapTable"&gt;&lt;/table&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 참여 현황 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="section-title"&gt;👥 참여 현황 &lt;span id="memberCount" style="color:#e8003a; font-weight:400; font-size:0.9rem;"&gt;&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="member-list" id="memberList"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 확정 버튼 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;button class="btn-confirm" id="confirmBtn" onclick="confirmSchedule()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>🎯 이 시간으로 합주 확정하기</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/button&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- 공유 박스 --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="share-box" id="shareBox"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h3&gt;📢 멤버들에게 공유해요!&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;아래 텍스트를 복사해서 단톡방에 보내세요&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="share-text" id="shareText"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn-copy" onclick="copyShare()"&gt;📋 복사하기&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const DAYS_FULL = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const DAYS<span class="Apple-converted-space">      </span>= ['일','월','화','수','목','금','토'];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const params <span class="Apple-converted-space">      </span>= new URLSearchParams(window.location.search);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const roomId <span class="Apple-converted-space">      </span>= params.get('id')<span class="Apple-converted-space">        </span>|| 'demo_room';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const roomName <span class="Apple-converted-space">    </span>= params.get('name')<span class="Apple-converted-space">      </span>|| '합주방';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const startDate<span class="Apple-converted-space">    </span>= params.get('start') <span class="Apple-converted-space">    </span>|| '2026-02-16';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const endDate<span class="Apple-converted-space">      </span>= params.get('end') <span class="Apple-converted-space">      </span>|| '2026-02-22';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const startHour<span class="Apple-converted-space">    </span>= parseInt(params.get('startTime') || '9');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const endHour<span class="Apple-converted-space">      </span>= parseInt(params.get('endTime') <span class="Apple-converted-space">  </span>|| '22');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const unitMin<span class="Apple-converted-space">      </span>= parseInt(params.get('unit')<span class="Apple-converted-space">      </span>|| '30');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const totalMembers = parseInt(params.get('members') <span class="Apple-converted-space">  </span>|| '4');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('headerRoomName').textContent = roomName;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function getDates(s, e) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const arr = [], cur = new Date(s+'T00:00:00'), end = new Date(e+'T00:00:00');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>while (cur &lt;= end) { arr.push(new Date(cur)); cur.setDate(cur.getDate()+1); }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return arr;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function getSlots(sh, eh, unit) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const arr = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>for (let h = sh; h &lt; eh; h++)</p>
+<p class="p1"><span class="Apple-converted-space">      </span>for (let m = 0; m &lt; 60; m += unit)</p>
+<p class="p1"><span class="Apple-converted-space">        </span>arr.push({ h, m });</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return arr;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const dates = getDates(startDate, endDate);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const slots = getSlots(startHour, endHour, unitMin);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>let selections = {};</p>
+<p class="p1"><span class="Apple-converted-space">  </span>let confirmedSlot = null; // { di, si, count }</p>
+<p class="p1"><span class="Apple-converted-space">  </span>let selectedSlot<span class="Apple-converted-space">  </span>= null; // 방장이 클릭해서 고른 슬롯</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function cellKey(di, si) { return `${di}_${si}`; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function getCount(di, si) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return Object.values(selections).filter(s =&gt; s &amp;&amp; s[cellKey(di,si)]).length;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function cellColor(di, si) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const cnt = getCount(di, si);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (cnt === 0) return '#fff';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (cnt &gt;= totalMembers) return '#e8003a';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const r = cnt / totalMembers;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (r &gt;= 0.66) return '#ff4d6d';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (r &gt;= 0.33) return '#ff8099';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return '#ffe0e6';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function timeLabel(h, m) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const ampm = h &lt; 12 ? '오전' : '오후';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const hh <span class="Apple-converted-space">  </span>= h === 0 ? 12 : h &gt; 12 ? h-12 : h;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return m === 0 ? `${ampm} ${hh}시` : `${ampm} ${hh}시 ${m}분`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── 추천 시간 계산 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function getTopSlots(n=3) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const scored = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>dates.forEach((d, di) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>slots.forEach((slot, si) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const cnt = getCount(di, si);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (cnt &gt; 0) scored.push({ di, si, cnt, d, slot });</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>scored.sort((a,b) =&gt; b.cnt - a.cnt);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// 연속된 슬롯을 묶기</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const groups = [];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>scored.slice(0, 20).forEach(item =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const last = groups[groups.length-1];</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (last &amp;&amp; last.di === item.di &amp;&amp; item.si === last.endSi+1 &amp;&amp; item.cnt === last.cnt) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>last.endSi = item.si;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>groups.push({ ...item, endSi: item.si });</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return groups.slice(0, n);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function buildRecommend() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const tops = getTopSlots(3);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const list = document.getElementById('recommendList');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>list.innerHTML = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (tops.length === 0) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>list.innerHTML = '&lt;p style="color:#aaa; font-size:0.9rem; padding:8px;"&gt;아직 응답한 멤버가 없어요&lt;/p&gt;';</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById('confirmBtn').disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>tops.forEach((t, i) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const card = document.createElement('div');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>card.className = 'recommend-card' + (i===0 ? ' top' : '');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>card.dataset.di = t.di;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>card.dataset.si = t.si;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>const d <span class="Apple-converted-space">    </span>= t.d;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS_FULL[d.getDay()]}`;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const startT<span class="Apple-converted-space">  </span>= timeLabel(t.slot.h, t.slot.m);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const endSlot = slots[t.endSi] || t.slot;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const endH<span class="Apple-converted-space">    </span>= t.endSi &lt; slots.length-1 ? slots[t.endSi+1].h : endSlot.h;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const endM<span class="Apple-converted-space">    </span>= t.endSi &lt; slots.length-1 ? slots[t.endSi+1].m : (endSlot.m + unitMin) % 60;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const endT<span class="Apple-converted-space">    </span>= timeLabel(endH, endM);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>card.innerHTML = `</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="info"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="date-text"&gt;${dateStr}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="time-text"&gt;${startT} ~ ${endT}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="badge ${i===0?'':'gray'}"&gt;${t.cnt}명 가능${t.cnt&gt;=totalMembers?' 🎉':''}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>`;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>card.addEventListener('click', () =&gt; selectSlot(t, card));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>list.appendChild(card);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// 기본으로 1위 선택</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (tops[0]) selectSlot(tops[0], list.firstChild);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function selectSlot(t, card) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.querySelectorAll('.recommend-card').forEach(c =&gt; c.classList.remove('top'));</p>
+<p class="p1"><span class="Apple-converted-space">    </span>card.classList.add('top');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>selectedSlot = t;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── 히트맵 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function buildHeatmap() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const tbl = document.getElementById('heatmapTable');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>tbl.innerHTML = '';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const thead = tbl.createTHead(), hrow = thead.insertRow();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const th0 = document.createElement('th'); hrow.appendChild(th0);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>dates.forEach((d, di) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const th = document.createElement('th');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const day = d.getDay();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>th.innerHTML = `${d.getMonth()+1}/${d.getDate()}&lt;br/&gt;${DAYS[day]}`;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (day===6) th.classList.add('sat');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (day===0) th.classList.add('sun');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>hrow.appendChild(th);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const tbody = tbl.createTBody();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>slots.forEach((slot, si) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const tr = tbody.insertRow();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (slot.m===0) tr.classList.add('on-the-hour');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const td0 = tr.insertCell();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>td0.className = 'time-label';</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (slot.m===0) td0.textContent = timeLabel(slot.h, 0);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>dates.forEach((d, di) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const td = tr.insertCell();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>td.className = 'cell';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>td.dataset.di = di; td.dataset.si = si;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>td.style.background = cellColor(di, si);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (confirmedSlot &amp;&amp; confirmedSlot.di===di &amp;&amp; si&gt;=confirmedSlot.si &amp;&amp; si&lt;=confirmedSlot.endSi) {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>td.classList.add('confirmed-slot');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── 범례 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function buildLegend() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const m = totalMembers;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const items = [</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ color:'#fff',<span class="Apple-converted-space">    </span>label:'불가' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ color:'#ffe0e6', label:'1명' },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ color:'#ff8099', label: m&lt;=4 ? '2명' : `2~${Math.floor(m*0.66)}명` },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ color:'#ff4d6d', label: m&lt;=4 ? '3명' : `${Math.floor(m*0.66)+1}~${m-1}명` },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>{ color:'#e8003a', label:`${m}명 모두!` },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>];</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('legend').innerHTML = items.map(i =&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>`&lt;div class="legend-item"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="legend-dot" style="background:${i.color};"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;span&gt;${i.label}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">    </span>).join('');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── 참여 현황 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function buildMembers() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const names = Object.keys(selections).filter(n =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const s = selections[n]; return s &amp;&amp; Object.keys(s).length &gt; 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('memberCount').textContent = `${names.length}명 참여`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('memberList').innerHTML = names.map(n =&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>`&lt;div class="member-chip"&gt;${n}&lt;/div&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">    </span>).join('');</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── 합주 확정 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function confirmSchedule() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!selectedSlot) { alert('시간을 선택해주세요!'); return; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const t = selectedSlot;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const d = t.d;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const dateStr<span class="Apple-converted-space">  </span>= `${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS_FULL[d.getDay()]}`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const startT <span class="Apple-converted-space">  </span>= timeLabel(t.slot.h, t.slot.m);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const endSlot<span class="Apple-converted-space">  </span>= slots[t.endSi] || t.slot;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const endH <span class="Apple-converted-space">    </span>= t.endSi &lt; slots.length-1 ? slots[t.endSi+1].h : endSlot.h;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const endM <span class="Apple-converted-space">    </span>= t.endSi &lt; slots.length-1 ? slots[t.endSi+1].m : (endSlot.m+unitMin)%60;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const endT <span class="Apple-converted-space">    </span>= timeLabel(endH, endM);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const fullText = `${dateStr} ${startT} ~ ${endT}`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!confirm(`"${fullText}"으로 합주를 확정할까요?`)) return;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>confirmedSlot = t;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Firebase에 저장</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (window._db) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>window._set(window._ref(window._db, `rooms/${roomId}/confirmed`), {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>di: t.di, si: t.si, endSi: t.endSi,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>text: fullText</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>showConfirmed(fullText);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function showConfirmed(text) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('confirmedBanner').style.display = 'block';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('confirmedText').textContent = text;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('confirmBtn').disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('confirmBtn').textContent = '✅ 확정 완료!';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// 공유 텍스트 생성</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const shareMsg = `🎸 ${roomName} 합주 날짜 확정!\n\n📅 ${text}\n\n모두 참석 부탁드려요 🙏`;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('shareText').textContent = shareMsg;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('shareBox').style.display = 'block';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>buildHeatmap(); // 확정 슬롯 하이라이트 반영</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('confirmedBanner').scrollIntoView({ behavior:'smooth', block:'center' });</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function copyShare() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const text = document.getElementById('shareText').textContent;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>navigator.clipboard.writeText(text).then(() =&gt; alert('✅ 복사됐어요! 단톡방에 붙여넣기 하세요 🎶'))</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.catch(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const el = document.createElement('textarea');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>el.value = text; document.body.appendChild(el);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>el.select(); document.execCommand('copy');</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.body.removeChild(el);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>alert('✅ 복사됐어요!');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// ── Firebase 데이터 수신 ──</p>
+<p class="p1"><span class="Apple-converted-space">  </span>function loadData() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!window._db) { renderAll(); return; }</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>window._onValue(window._ref(window._db, `rooms/${roomId}`), snap =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const data = snap.val() || {};</p>
+<p class="p1"><span class="Apple-converted-space">      </span>selections = data.selections || {};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">      </span>// 이미 확정된 경우</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (data.confirmed) {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>confirmedSlot = data.confirmed;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>showConfirmed(data.confirmed.text);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>renderAll();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>function renderAll() {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>buildLegend();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>buildRecommend();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>buildHeatmap();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>buildMembers();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('loadingScreen').style.display = 'none';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById('main').style.display = 'flex';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (window._db) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>loadData();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.addEventListener('firebaseReady', loadData);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (document.getElementById('loadingScreen').style.display !== 'none') {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>loadData();</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}, 3000);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
