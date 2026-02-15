@@ -358,8 +358,9 @@
       document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // 링크 복사
-    function copyLink() {
+    // 전역 등록 (onclick에서 쓰려면 필요)
+    window.createRoom = createRoom;
+    window.copyLink   = copyLink;
       const link = document.getElementById('shareLink').textContent;
       navigator.clipboard.writeText(link).then(() => {
         alert('✅ 링크가 복사됐어요! 멤버들에게 공유하세요 🎶');
