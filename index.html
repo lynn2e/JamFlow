@@ -91,6 +91,9 @@
     .step-text strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
     .step-text span { font-size: 0.82rem; color: #666; }
   </style>
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -184,7 +187,25 @@
 
 <!-- 스크립트는 항상 </body> 바로 위에! -->
 <script>
-  var DAYS = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+      // Firebase 초기화
+    try {
+      firebase.initializeApp({
+        apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
+        authDomain: "jamflow-dd033.firebaseapp.com",
+        databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
+        projectId: "jamflow-dd033",
+        storageBucket: "jamflow-dd033.firebasestorage.app",
+        messagingSenderId: "913570760402",
+        appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
+      });
+      window._firebaseDb  = firebase.database();
+      window._firebaseRef = function(db, path){ return db.ref(path); };
+      window._firebaseSet = function(ref, val){ return ref.set(val); };
+    } catch(e) {
+      console.log('Firebase 연결 실패(무시 가능):', e);
+    }
+
+    var DAYS = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
 
   function showDay(val, id) {
     var el = document.getElementById(id);
@@ -247,7 +268,7 @@
     document.getElementById('resultBox').style.display = 'block';
     document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    if (window._firebaseSet && window._firebaseRef && window._firebaseDb) {
+    if (window._firebaseDb) {
       window._firebaseSet(window._firebaseRef(window._firebaseDb, 'rooms/'+roomId+'/info'), {
         name: name, start: start, end: end,
         startTime: st, endTime: et, unit: unit, members: count

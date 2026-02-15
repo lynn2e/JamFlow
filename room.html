@@ -434,7 +434,25 @@
     });
   }
 
-  function scheduleSave(){
+  // Firebase 초기화
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
+      authDomain: "jamflow-dd033.firebaseapp.com",
+      databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
+      projectId: "jamflow-dd033",
+      storageBucket: "jamflow-dd033.firebasestorage.app",
+      messagingSenderId: "913570760402",
+      appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
+    });
+    window._firebaseDb      = firebase.database();
+    window._firebaseRef     = function(db, path){ return db.ref(path); };
+    window._firebaseSet     = function(ref, val){ return ref.set(val); };
+    window._firebaseOnValue = function(ref, cb){ ref.on('value', cb); };
+    console.log('Firebase 연결 성공!');
+  } catch(e) {
+    console.log('Firebase 연결 실패(무시 가능):', e);
+  }
     clearTimeout(saveTimer);
     saveTimer=setTimeout(saveToFirebase, 2000);
   }
@@ -534,30 +552,47 @@
     }catch(e){}
     document.getElementById('nameScreen').style.display='flex';
   }
-  setTimeout(showNameScreen, 500);
+  // Firebase 초기화 + 이름화면 진입
+  function initFirebaseAndStart() {
+    try {
+      firebase.initializeApp({
+        apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
+        authDomain: "jamflow-dd033.firebaseapp.com",
+        databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
+        projectId: "jamflow-dd033",
+        storageBucket: "jamflow-dd033.firebasestorage.app",
+        messagingSenderId: "913570760402",
+        appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
+      });
+      window._firebaseDb      = firebase.database();
+      window._firebaseRef     = function(db, path){ return db.ref(path); };
+      window._firebaseSet     = function(ref, val){ return ref.set(val); };
+      window._firebaseOnValue = function(ref, cb){ ref.on('value', cb); };
+    } catch(e) {
+      console.log('Firebase 연결 실패(무시 가능):', e);
+    }
+    showNameScreen();
+  }
+
+  // Firebase CDN 로드 후 실행
+  function loadFirebase() {
+    var s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    s1.onload = function() {
+      var s2 = document.createElement('script');
+      s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+      s2.onload = initFirebaseAndStart;
+      s2.onerror = showNameScreen; // Firebase 로드 실패해도 진행
+      document.head.appendChild(s2);
+    };
+    s1.onerror = showNameScreen; // Firebase 로드 실패해도 진행
+    document.head.appendChild(s1);
+  }
+
+  loadFirebase();
 </script>
 
-<script type="module">
-  try {
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-    const { getDatabase, ref, set, onValue } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-    const firebaseConfig = {
-      apiKey: "AIzaSyCb_CrMi2fc8qB6HvV92DDI77JDmCqGvpY",
-      authDomain: "jamflow-dd033.firebaseapp.com",
-      databaseURL: "https://jamflow-dd033-default-rtdb.firebaseio.com",
-      projectId: "jamflow-dd033",
-      storageBucket: "jamflow-dd033.firebasestorage.app",
-      messagingSenderId: "913570760402",
-      appId: "1:913570760402:web:18450473aa2b0a25b18f0b"
-    };
-    window._firebaseDb      = getDatabase(initializeApp(firebaseConfig));
-    window._firebaseRef     = ref;
-    window._firebaseSet     = set;
-    window._firebaseOnValue = onValue;
-  } catch(e) {
-    console.log('Firebase 연결 실패(무시 가능):', e);
-  }
-</script>
+
 
 </body>
 </html>
