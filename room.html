@@ -55,6 +55,7 @@
     .grid-table thead th.sun { color:#ff7eb8; }
     .grid-table tbody td.time-label { background:#fafafa; font-size:0.65rem; color:#888; font-weight:600; padding:0 6px; text-align:right; white-space:nowrap; position:sticky; left:0; z-index:1; border-right:2px solid #ccc; vertical-align:middle; width:52px; }
     .grid-table tbody td.cell { height:16px; border:1px solid #eee; cursor:pointer; user-select:none; }
+    .grid-table tbody td.cell.mine { outline:2px solid #e8003a; outline-offset:-2px; z-index:1; position:relative; }
     .grid-table tbody tr.on-the-hour td.cell { border-top:1px solid #ccc; }
 
     .recommend-box { border:2px solid #111; border-radius:16px; padding:20px; box-shadow:4px 4px 0 #111; }
@@ -62,7 +63,8 @@
     .recommend-list { display:flex; flex-direction:column; gap:10px; }
     .rec-card { border:2px solid #eee; border-radius:12px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:border-color 0.15s; }
     .rec-card:hover { border-color:#e8003a; }
-    .rec-card.selected { border-color:#e8003a; background:#fff5f7; box-shadow:3px 3px 0 #111; }
+    .rec-card.top { border-color:#e8003a; background:#fff5f7; box-shadow:4px 4px 0 #111; }
+    .rec-card .crown { font-size:0.8rem; margin-right:4px; }
     .rec-card .info .date-text { font-size:0.95rem; font-weight:800; }
     .rec-card .info .time-text { font-size:0.8rem; color:#666; margin-top:2px; }
     .badge { background:#e8003a; color:#fff; font-size:0.72rem; font-weight:800; padding:4px 10px; border-radius:20px; white-space:nowrap; }
@@ -72,8 +74,10 @@
     .status-card { border:2px solid #eee; border-radius:14px; padding:16px 20px; }
     .status-card h3 { font-size:0.9rem; font-weight:700; margin-bottom:12px; }
     .member-list { display:flex; flex-wrap:wrap; gap:8px; }
-    .member-chip { background:#f5f5f5; border-radius:20px; padding:5px 12px; font-size:0.82rem; font-weight:600; }
-    .member-chip.me { background:#fff0f3; color:#e8003a; border:1.5px solid #e8003a; }
+    .member-chip { background:#f5f5f5; border-radius:20px; padding:5px 12px; font-size:0.82rem; font-weight:600; cursor:pointer; transition: all 0.15s; }
+    .member-chip:hover { border-color:#111; background:#eee; }
+    .member-chip.me { background:#fff0f3; color:#e8003a; border:1.5px solid #e8003a; cursor:default; }
+    .member-chip.active { background:#111; color:#fff; }
 
     .confirm-section { display:flex; flex-direction:column; gap:8px; }
     .confirm-desc { font-size:0.82rem; color:#aaa; text-align:center; }
@@ -146,17 +150,7 @@
     <div class="recommend-list" id="recommendList"></div>
   </div>
 
-  <div class="confirm-section">
-    <p class="confirm-desc" id="confirmDesc"></p>
-    <button class="btn-confirm" id="confirmBtn">🎯 이 시간으로 합주 확정하기</button>
-  </div>
 
-  <div class="confirmed-banner" id="confirmedBanner">
-    <h3>🎉 합주 날짜 <span>확정!</span></h3>
-    <p id="confirmedText"></p>
-    <div class="share-text" id="shareText"></div>
-    <button class="btn-copy" id="copyBtn">📋 단톡방에 공유하기</button>
-  </div>
 
 </div>
 
@@ -169,14 +163,12 @@
   var params       = new URLSearchParams(window.location.search);
   var roomId       = params.get('id')        || 'demo_room';
   var roomName     = params.get('name')      || '합주방';
-  var hostName     = params.get('host')      || '';
   var startDate    = params.get('start')     || '2026-02-16';
   var endDate      = params.get('end')       || '2026-02-22';
   var startHour    = parseInt(params.get('startTime') || '9');
   var endHour      = parseInt(params.get('endTime')   || '22');
   var unitMin      = parseInt(params.get('unit')      || '30');
   var totalMembers = parseInt(params.get('members')   || '4');
-  var isHost       = false;
   var myName       = '';
   var currentWeek  = 0; // 현재 보여주는 주 인덱스
 
@@ -218,7 +210,7 @@
   var dragMode     = null;
   var saveTimer    = null;
   var selectedRec  = null;
-  var confirmedData = null;
+  var viewingMember = null; // 현재 보고 있는 멤버 (null이면 전체)
 
   function cellKey(di, si) { return di+'_'+si; }
   function getCount(di, si) {
@@ -228,14 +220,29 @@
     return cnt;
   }
   function isMine(di, si) { return !!(selections[myName] && selections[myName][cellKey(di,si)]); }
+  // 남들만 선택한 칸 색상 (회색 계열)
+  function othersColor(cnt) {
+    if (cnt === 0) return '#fff';
+    var r = cnt / totalMembers;
+    if (r >= 0.66) return '#bbb';
+    if (r >= 0.33) return '#d5d5d5';
+    return '#eeeeee';
+  }
+
   function cellColor(di, si) {
-    var cnt = getCount(di,si);
-    if (cnt===0) return '#fff';
-    if (cnt>=totalMembers) return '#e8003a';
-    var r = cnt/totalMembers;
-    if (r>=0.66) return '#ff4d6d';
-    if (r>=0.33) return '#ff8099';
-    return '#ffe0e6';
+    var cnt = getCount(di, si);
+    if (cnt === 0) return '#fff';
+    var mine = isMine(di, si);
+    var others = cnt - (mine ? 1 : 0);
+    if (mine && others > 0) {
+      // 나 + 다른 사람 겹침 → 진한 빨강
+      var r = cnt / totalMembers;
+      if (r >= 0.66) return '#ff4d6d';
+      if (r >= 0.33) return '#ff8099';
+      return '#ffb3c1';
+    }
+    if (mine) return '#ffe0e6'; // 나만 선택
+    return othersColor(others); // 남들만 선택
   }
   function timeLabel(h, m) {
     var ap = h<12?'오전':'오후', hh = h===0?12:h>12?h-12:h;
@@ -342,7 +349,11 @@
     if(dragMode==='add') selections[myName][k]=true;
     else delete selections[myName][k];
     var td=document.querySelector('td[data-di="'+di+'"][data-si="'+si+'"]');
-    if(td) td.style.background=cellColor(di,si);
+    if(td){
+      td.style.background=cellColor(di,si);
+      if(isMine(di,si)) td.classList.add('mine');
+      else td.classList.remove('mine');
+    }
     updateRecommend();
   }
 
@@ -374,10 +385,8 @@
     var list=document.getElementById('recommendList');
     if(groups.length===0){
       list.innerHTML='<div class="no-overlap">아직 아무도 선택하지 않았어요</div>';
-      document.getElementById('confirmBtn').disabled=true;
       selectedRec=null; return;
     }
-    if(isHost) document.getElementById('confirmBtn').disabled=false;
     var html='';
     for(var j=0;j<groups.length;j++){
       var g=groups[j], d=allDates[g.di];
@@ -385,18 +394,12 @@
       var startT=timeLabel(slots[g.si].h,slots[g.si].m);
       var nsi=g.endSi+1;
       var endT=nsi<slots.length?timeLabel(slots[nsi].h,slots[nsi].m):timeLabel(slots[g.endSi].h,slots[g.endSi].m+unitMin);
-      var isSel=selectedRec&&selectedRec.di===g.di&&selectedRec.si===g.si;
-      html+='<div class="rec-card'+(isSel?' selected':'')+'" data-j="'+j+'">'
-        +'<div class="info"><div class="date-text">'+dateStr+'</div><div class="time-text">'+startT+' ~ '+endT+'</div></div>'
+      html+='<div class="rec-card'+(j===0?' top':'')+'">'
+        +'<div class="info"><div class="date-text">'+(j===0?'👑 ':'')+dateStr+'</div><div class="time-text">'+startT+' ~ '+endT+'</div></div>'
         +'<div class="badge '+(j===0?'':'gray')+'">'+g.cnt+'명'+(g.cnt>=totalMembers?' 🎉':'')+'</div>'
         +'</div>';
     }
     list.innerHTML=html;
-    if(!selectedRec) selectedRec=groups[0];
-    var cards=list.querySelectorAll('.rec-card');
-    for(var k2=0;k2<cards.length;k2++){
-      (function(card,grp){ card.addEventListener('click',function(){ selectedRec=grp; updateRecommend(); }); })(cards[k2],groups[k2]);
-    }
   }
 
   function updateStatus(){
@@ -405,9 +408,30 @@
     var html='';
     for(var i=0;i<names.length;i++){
       var n=names[i];
-      html+='<div class="member-chip'+(n===myName?' me':'')+'">'+n+(n===myName?' (나)':'')+'</div>';
+      var isMe = n===myName;
+      var isActive = viewingMember===n;
+      html+='<div class="member-chip'+(isMe?' me':isActive?' active':'')+'" data-name="'+n+'">'
+        +n+(isMe?' (나)':'')
+        +'</div>';
     }
     document.getElementById('memberList').innerHTML=html;
+
+    // 멤버 칩 클릭 이벤트
+    document.querySelectorAll('.member-chip:not(.me)').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        var name = chip.dataset.name;
+        if (viewingMember === name) {
+          // 다시 누르면 전체 보기로 복귀
+          viewingMember = null;
+          showToast('전체 보기로 돌아왔어요', 1500);
+        } else {
+          viewingMember = name;
+          showToast('👀 '+name+'의 스케줄 보는 중', 1500);
+        }
+        refreshAllCells();
+        updateStatus();
+      });
+    });
   }
 
   function scheduleSave(){
@@ -425,8 +449,18 @@
 
   function refreshAllCells(){
     var cells=document.querySelectorAll('td.cell');
-    for(var i=0;i<cells.length;i++)
-      cells[i].style.background=cellColor(parseInt(cells[i].dataset.di),parseInt(cells[i].dataset.si));
+    for(var i=0;i<cells.length;i++){
+      var di=parseInt(cells[i].dataset.di), si=parseInt(cells[i].dataset.si);
+      if (viewingMember) {
+        var sel=selections[viewingMember];
+        cells[i].style.background=(sel&&sel[cellKey(di,si)])?'#e8003a':'#fff';
+        cells[i].classList.remove('mine');
+      } else {
+        cells[i].style.background=cellColor(di,si);
+        if(isMine(di,si)) cells[i].classList.add('mine');
+        else cells[i].classList.remove('mine');
+      }
+    }
   }
 
   function listenFirebase(){
@@ -484,22 +518,10 @@
 
   function enterWithName(name){
     myName=name;
-    isHost=(hostName&&hostName===myName);
     try{ localStorage.setItem('jamflow_name_'+roomId, myName); }catch(e){}
-
     document.getElementById('nameScreen').style.display='none';
     document.getElementById('mainScreen').style.display='flex';
-    document.getElementById('userBadge').textContent=isHost?'👑 '+myName+' (방장)':'🎸 '+myName;
-
-    if(isHost){
-      document.getElementById('confirmDesc').textContent='방장만 최종 날짜를 확정할 수 있어요';
-      document.getElementById('confirmBtn').disabled=false;
-    } else {
-      document.getElementById('confirmDesc').textContent='방장이 최종 날짜를 확정하면 여기에 표시돼요';
-      document.getElementById('confirmBtn').disabled=true;
-      document.getElementById('confirmBtn').style.display='none';
-    }
-
+    document.getElementById('userBadge').textContent='🎸 '+myName;
     buildLegend(); updateWeekNav(); buildGrid(); updateRecommend(); updateStatus(); listenFirebase();
     showToast('👋 '+roomName+'에 참여했어요!', 2500);
   }

@@ -110,6 +110,9 @@
   <label>밴드 / 방 이름</label>
   <input type="text" id="bandName" placeholder="예: 5분쉼표 7월 합주" style="margin-bottom:16px;" />
 
+  <label>방장 이름 (닉네임)</label>
+  <input type="text" id="hostName" placeholder="예: 김기타" style="margin-bottom:16px;" />
+
   <label>날짜 범위 선택</label>
   <div class="row">
     <div>
@@ -221,6 +224,7 @@
 
   document.getElementById('createRoomBtn').addEventListener('click', function() {
     var name  = document.getElementById('bandName').value.trim();
+    var host  = document.getElementById('hostName').value.trim();
     var start = document.getElementById('startDate').value;
     var end   = document.getElementById('endDate').value;
     var st    = document.getElementById('startTime').value;
@@ -229,13 +233,14 @@
     var count = document.getElementById('memberCount').value;
 
     if (!name)          { alert('밴드 이름을 입력해주세요! 🎸'); return; }
+    if (!host)          { alert('방장 이름을 입력해주세요! 👑'); return; }
     if (!start || !end) { alert('날짜를 선택해주세요! 📅'); return; }
     if (new Date(start) > new Date(end)) { alert('시작일이 종료일보다 늦어요!'); return; }
     if (parseInt(st) >= parseInt(et))   { alert('종료 시간이 시작 시간보다 늦어야 해요!'); return; }
     if (!count)         { alert('인원 수를 입력해주세요!'); return; }
 
     var roomId = 'room_' + Math.random().toString(36).substr(2, 8);
-    var p = new URLSearchParams({ id: roomId, name: name, start: start, end: end, startTime: st, endTime: et, unit: unit, members: count });
+    var p = new URLSearchParams({ id: roomId, name: name, host: host, start: start, end: end, startTime: st, endTime: et, unit: unit, members: count });
     var link = window.location.origin + '/room.html?' + p.toString();
 
     document.getElementById('shareLink').textContent = link;
